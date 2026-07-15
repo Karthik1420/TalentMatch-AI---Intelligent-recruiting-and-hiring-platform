@@ -1,6 +1,11 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 from enum import Enum
+from datetime import datetime
+from models import (
+    EmploymentTypeEnum, WorkModeEnum, JobStatusEnum,
+    SkillImportanceEnum, SkillLevelEnum, ApplicationStatusEnum
+)
 
 class RoleEnum(str, Enum):
     admin = "admin"
@@ -65,6 +70,12 @@ class RecruiterResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class RecruiterProfileResponse(RecruiterResponse):
+    company: CompanyResponse
+    
+    class Config:
+        from_attributes = True
+
 class PasswordConfirm(BaseModel):
     password: str
 
@@ -89,3 +100,130 @@ class Token(BaseModel):
     token_type: str
     role: RoleEnum
     user_id: int
+
+# --- Skills Schemas ---
+class SkillCreate(BaseModel):
+    name: str
+    category: Optional[str] = None
+
+class SkillResponse(SkillCreate):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+# --- Job Required Skills Schemas ---
+class JobRequiredSkillCreate(BaseModel):
+    skill_id: int
+    importance: SkillImportanceEnum = SkillImportanceEnum.Required
+    required_level: SkillLevelEnum = SkillLevelEnum.Intermediate
+
+class JobRequiredSkillResponse(BaseModel):
+    id: int
+    job_id: int
+    skill: SkillResponse
+    importance: SkillImportanceEnum
+    required_level: SkillLevelEnum
+
+    class Config:
+        from_attributes = True
+
+# --- Jobs Schemas ---
+class JobCreate(BaseModel):
+    title: str
+    employment_type: EmploymentTypeEnum
+    work_mode: WorkModeEnum
+    department: Optional[str] = None
+    
+    location_city: Optional[str] = None
+    location_state: Optional[str] = None
+    location_country: Optional[str] = None
+    
+    salary_min: Optional[float] = None
+    salary_max: Optional[float] = None
+    currency: Optional[str] = None
+    
+    experience_min_years: Optional[int] = None
+    experience_max_years: Optional[int] = None
+    
+    required_degree: Optional[str] = None
+    required_specialization: Optional[str] = None
+    minimum_cgpa: Optional[float] = None
+    
+    vacancies: Optional[int] = 1
+    
+    description: Optional[str] = None
+    responsibilities: Optional[str] = None
+    requirements: Optional[str] = None
+    preferred_qualifications: Optional[str] = None
+    benefits: Optional[str] = None
+    required_skills_text: Optional[str] = None
+    
+    application_deadline: Optional[datetime] = None
+    status: JobStatusEnum = JobStatusEnum.Draft
+
+class JobUpdate(BaseModel):
+    title: Optional[str] = None
+    employment_type: Optional[EmploymentTypeEnum] = None
+    work_mode: Optional[WorkModeEnum] = None
+    department: Optional[str] = None
+    location_city: Optional[str] = None
+    location_state: Optional[str] = None
+    location_country: Optional[str] = None
+    salary_min: Optional[float] = None
+    salary_max: Optional[float] = None
+    currency: Optional[str] = None
+    experience_min_years: Optional[int] = None
+    experience_max_years: Optional[int] = None
+    required_degree: Optional[str] = None
+    required_specialization: Optional[str] = None
+    minimum_cgpa: Optional[float] = None
+    vacancies: Optional[int] = None
+    description: Optional[str] = None
+    responsibilities: Optional[str] = None
+    requirements: Optional[str] = None
+    preferred_qualifications: Optional[str] = None
+    benefits: Optional[str] = None
+    required_skills_text: Optional[str] = None
+    application_deadline: Optional[datetime] = None
+    status: Optional[JobStatusEnum] = None
+
+class JobResponse(JobCreate):
+    id: int
+    company_id: int
+    posted_by: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    required_skills: List[JobRequiredSkillResponse] = []
+
+    class Config:
+        from_attributes = True
+
+# --- Application Schemas ---
+class JobApplicationHistoryResponse(BaseModel):
+    id: int
+    application_id: int
+    previous_status: Optional[ApplicationStatusEnum] = None
+    new_status: ApplicationStatusEnum
+    comment: Optional[str] = None
+    changed_by: int
+    changed_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class JobApplicationResponse(BaseModel):
+    id: int
+    job_id: int
+    candidate_id: int
+    status: ApplicationStatusEnum
+    applied_at: datetime
+    updated_at: Optional[datetime] = None
+    history: List[JobApplicationHistoryResponse] = []
+
+    class Config:
+        from_attributes = True
+
+class ApplicationStatusUpdate(BaseModel):
+    status: ApplicationStatusEnum
+    comment: Optional[str] = None

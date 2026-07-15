@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi import APIRouter, Depends, UploadFile, File, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List
 import shutil
@@ -7,7 +7,7 @@ import os
 from database import get_db
 from auth import get_current_admin
 import schemas, models
-from services import admin_service
+from services import admin_service, email_service
 
 router = APIRouter(
     prefix="/admin",
@@ -43,9 +43,19 @@ def get_recruiters(company_id: int, db: Session = Depends(get_db)):
     return admin_service.get_recruiters(db=db, company_id=company_id)
 
 @router.post("/recruiter", response_model=schemas.RecruiterResponse)
-def create_recruiter(recruiter: schemas.RecruiterCreate, db: Session = Depends(get_db)):
+def create_recruiter(recruiter: schemas.RecruiterCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """Admin creates a new recruiter for a specific company"""
     db_recruiter = admin_service.create_recruiter(db=db, recruiter=recruiter)
+    
+    # Send email in background
+    company_name = db_recruiter.company.name if db_recruiter.company else "TalentMatch AI"
+    background_tasks.add_task(
+        email_service.send_recruiter_credentials,
+        to_email=recruiter.email,
+        password=recruiter.password,
+        company_name=company_name
+    )
+    
     return {
         "id": db_recruiter.id,
         "user_id": db_recruiter.user_id,

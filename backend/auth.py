@@ -53,3 +53,8 @@ def get_current_admin(current_user: models.User = Depends(get_current_user)):
     if current_user.role != models.RoleEnum.admin:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return current_user
+
+def get_current_recruiter(current_user: models.User = Depends(get_current_user)):
+    if current_user.role != models.RoleEnum.recruiter:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    return current_user
