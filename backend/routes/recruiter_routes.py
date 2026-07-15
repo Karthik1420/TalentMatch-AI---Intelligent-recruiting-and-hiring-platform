@@ -57,6 +57,13 @@ def update_job(job_id: int, job_update: schemas.JobUpdate, current_user: models.
     profile = get_recruiter_profile(current_user, db)
     return recruiter_service.update_job(db=db, job_id=job_id, company_id=profile.company_id, job_update=job_update)
 
+@router.delete("/jobs/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_job(job_id: int, current_user: models.User = Depends(get_current_recruiter), db: Session = Depends(get_db)):
+    """Recruiter deletes a specific job"""
+    profile = get_recruiter_profile(current_user, db)
+    recruiter_service.delete_job(db=db, job_id=job_id, company_id=profile.company_id)
+    return None
+
 @router.post("/jobs/{job_id}/skills", response_model=schemas.JobRequiredSkillResponse)
 def add_skill_to_job(job_id: int, req_skill: schemas.JobRequiredSkillCreate, current_user: models.User = Depends(get_current_recruiter), db: Session = Depends(get_db)):
     """Recruiter adds a required skill to a job"""

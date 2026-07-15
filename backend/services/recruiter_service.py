@@ -56,6 +56,13 @@ def update_job(db: Session, job_id: int, company_id: int, job_update: schemas.Jo
     db.refresh(job)
     return job
 
+def delete_job(db: Session, job_id: int, company_id: int):
+    job = get_job(db, job_id, company_id)
+    db.delete(job)
+    db.commit()
+    return True
+
+
 def get_skills(db: Session):
     return db.query(models.Skill).all()
 
