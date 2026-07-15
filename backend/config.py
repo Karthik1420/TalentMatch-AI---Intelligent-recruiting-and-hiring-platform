@@ -5,7 +5,7 @@ load_dotenv()
 
 # Database
 # Connect using the provided connection string from user
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://neondb_owner:npg_VydO7RWQED3N@ep-spring-flower-ad0xi5vy.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # JWT Settings
 SECRET_KEY = os.getenv("SECRET_KEY", "b3a1a63c46e2a2223a31c19b4a45a33118d0b5e28a9b2b513476d09e5306913e") # Change in production
