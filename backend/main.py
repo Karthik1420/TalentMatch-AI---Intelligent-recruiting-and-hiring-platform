@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from database import engine, get_db, SessionLocal
 import models
-from routes import auth_routes, admin_routes, recruiter_routes
+from routes import auth_routes, admin_routes, recruiter_routes, candidate_routes
 import auth
 from schemas import UserRegister
 import os
@@ -13,6 +13,7 @@ models.Base.metadata.create_all(bind=engine)
 
 # Ensure static directory exists
 os.makedirs("static/images", exist_ok=True)
+os.makedirs("static/certifications", exist_ok=True)
 
 app = FastAPI(title="TalentMatch AI")
 
@@ -31,6 +32,7 @@ app.add_middleware(
 app.include_router(auth_routes.router)
 app.include_router(admin_routes.router)
 app.include_router(recruiter_routes.router)
+app.include_router(candidate_routes.router)
 
 @app.on_event("startup")
 def startup_event():

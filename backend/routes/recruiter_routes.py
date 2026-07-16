@@ -103,3 +103,9 @@ def update_application_status(app_id: int, status_update: schemas.ApplicationSta
         recruiter_id=current_user.id, 
         update_data=status_update
     )
+
+@router.get("/candidates/{candidate_id}/portfolio")
+def get_candidate_portfolio(candidate_id: int, current_user: models.User = Depends(get_current_recruiter), db: Session = Depends(get_db)):
+    """Recruiter views the portfolio of a candidate who applied to their jobs"""
+    profile = get_recruiter_profile(current_user, db)
+    return recruiter_service.get_candidate_portfolio(db=db, company_id=profile.company_id, candidate_id=candidate_id)

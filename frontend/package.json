@@ -13,6 +13,7 @@
     "@fontsource/geist-sans": "^5.2.5",
     "@tailwindcss/vite": "^4.3.2",
     "axios": "^1.18.1",
+    "date-fns": "^4.4.0",
     "framer-motion": "^12.42.2",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^1.24.0",

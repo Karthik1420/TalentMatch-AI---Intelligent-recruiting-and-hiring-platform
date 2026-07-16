@@ -44,6 +44,12 @@ class ApplicationStatusEnum(str, enum.Enum):
     Rejected = "Rejected"
     Hired = "Hired"
 
+class LanguageProficiencyEnum(str, enum.Enum):
+    Beginner = "Beginner"
+    Intermediate = "Intermediate"
+    Professional = "Professional"
+    Native = "Native"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -63,6 +69,7 @@ class User(Base):
     companies_created = relationship("Company", back_populates="creator")
     recruiter_profile = relationship("Recruiter", back_populates="user", uselist=False)
     job_applications = relationship("JobApplication", back_populates="candidate")
+    candidate_profile = relationship("CandidateProfile", back_populates="user", uselist=False)
 
 class Company(Base):
     __tablename__ = "companies"
@@ -174,6 +181,7 @@ class Skill(Base):
     
     # Relationships
     job_requirements = relationship("JobRequiredSkill", back_populates="skill")
+    candidate_skills = relationship("CandidateSkill", back_populates="skill")
 
 class JobRequiredSkill(Base):
     __tablename__ = "job_required_skills"
@@ -223,3 +231,147 @@ class JobApplicationHistory(Base):
     # Relationships
     application = relationship("JobApplication", back_populates="history")
     changer = relationship("User")
+
+# --- Job Seekers / Candidate Portfolio Models ---
+
+class CandidateProfile(Base):
+    __tablename__ = "candidate_profiles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
+    headline = Column(String, nullable=True)
+    date_of_birth = Column(String, nullable=True) # Or Date
+    gender = Column(String, nullable=True)
+    phone = Column(String, nullable=True)
+    alternate_phone = Column(String, nullable=True)
+    email = Column(String, nullable=False)
+    linkedin_url = Column(String, nullable=True)
+    github_url = Column(String, nullable=True)
+    portfolio_url = Column(String, nullable=True)
+    website = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    city = Column(String, nullable=True)
+    state = Column(String, nullable=True)
+    country = Column(String, nullable=True)
+    postal_code = Column(String, nullable=True)
+    current_company = Column(String, nullable=True)
+    current_designation = Column(String, nullable=True)
+    current_salary = Column(String, nullable=True)
+    expected_salary = Column(String, nullable=True)
+    notice_period = Column(String, nullable=True)
+    preferred_location = Column(String, nullable=True)
+    work_authorization = Column(String, nullable=True)
+    summary = Column(Text, nullable=True)
+    resume_url = Column(String, nullable=True)
+    profile_photo = Column(String, nullable=True)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Relationships
+    user = relationship("User", back_populates="candidate_profile")
+    education = relationship("Education", back_populates="candidate", cascade="all, delete")
+    experience = relationship("Experience", back_populates="candidate", cascade="all, delete")
+    projects = relationship("Project", back_populates="candidate", cascade="all, delete")
+    certifications = relationship("Certification", back_populates="candidate", cascade="all, delete")
+    languages = relationship("CandidateLanguage", back_populates="candidate", cascade="all, delete")
+    skills = relationship("CandidateSkill", back_populates="candidate", cascade="all, delete")
+
+class Education(Base):
+    __tablename__ = "education"
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(Integer, ForeignKey("candidate_profiles.id"), nullable=False)
+    degree = Column(String, nullable=False)
+    specialization = Column(String, nullable=True)
+    institution = Column(String, nullable=False)
+    university = Column(String, nullable=True)
+    start_year = Column(Integer, nullable=True)
+    end_year = Column(Integer, nullable=True)
+    cgpa = Column(Float, nullable=True)
+    percentage = Column(Float, nullable=True)
+    grade = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
+
+    candidate = relationship("CandidateProfile", back_populates="education")
+
+class Experience(Base):
+    __tablename__ = "experience"
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(Integer, ForeignKey("candidate_profiles.id"), nullable=False)
+    company_name = Column(String, nullable=False)
+    designation = Column(String, nullable=False)
+    employment_type = Column(String, nullable=True)
+    location = Column(String, nullable=True)
+    start_date = Column(String, nullable=True)
+    end_date = Column(String, nullable=True)
+    currently_working = Column(Boolean, default=False)
+    duration_months = Column(Integer, nullable=True)
+    description = Column(Text, nullable=True)
+    achievements = Column(Text, nullable=True)
+
+    candidate = relationship("CandidateProfile", back_populates="experience")
+
+class Project(Base):
+    __tablename__ = "projects"
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(Integer, ForeignKey("candidate_profiles.id"), nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    technologies = Column(String, nullable=True)
+    github_url = Column(String, nullable=True)
+    live_demo_url = Column(String, nullable=True)
+    start_date = Column(String, nullable=True)
+    end_date = Column(String, nullable=True)
+
+    candidate = relationship("CandidateProfile", back_populates="projects")
+
+class Certification(Base):
+    __tablename__ = "certifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(Integer, ForeignKey("candidate_profiles.id"), nullable=False)
+    certificate_name = Column(String, nullable=False)
+    issuer = Column(String, nullable=False)
+    issue_date = Column(String, nullable=True)
+    expiry_date = Column(String, nullable=True)
+    credential_id = Column(String, nullable=True)
+    credential_url = Column(String, nullable=True)
+    certificate_file_url = Column(String, nullable=True)
+
+    candidate = relationship("CandidateProfile", back_populates="certifications")
+
+class Language(Base):
+    __tablename__ = "languages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True, nullable=False)
+    
+    candidate_languages = relationship("CandidateLanguage", back_populates="language")
+
+class CandidateLanguage(Base):
+    __tablename__ = "candidate_languages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(Integer, ForeignKey("candidate_profiles.id"), nullable=False)
+    language_id = Column(Integer, ForeignKey("languages.id"), nullable=False)
+    proficiency = Column(Enum(LanguageProficiencyEnum), default=LanguageProficiencyEnum.Professional)
+
+    candidate = relationship("CandidateProfile", back_populates="languages")
+    language = relationship("Language", back_populates="candidate_languages")
+
+class CandidateSkill(Base):
+    __tablename__ = "candidate_skills"
+
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(Integer, ForeignKey("candidate_profiles.id"), nullable=False)
+    skill_id = Column(Integer, ForeignKey("skills.id"), nullable=False)
+    proficiency = Column(String, nullable=True) # Optional enum can be used, but string works too
+    experience_years = Column(Integer, nullable=True)
+
+    candidate = relationship("CandidateProfile", back_populates="skills")
+    skill = relationship("Skill", back_populates="candidate_skills")

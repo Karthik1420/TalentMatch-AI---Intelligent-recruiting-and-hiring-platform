@@ -1,0 +1,461 @@
+# Antigravity Frontend Implementation Prompt – Module 3: Job Seekers / Users
+
+## Objective
+
+Implement the complete **frontend** for the **Job Seekers / Users Module** in Antigravity using **React** and **Tailwind CSS**.
+
+This phase focuses **only on the frontend**. The backend APIs, authentication, business logic, database operations, validations, and file storage have already been implemented.
+
+The frontend should consume the existing backend APIs and provide a modern, responsive, intuitive, and production-ready user experience.
+
+The **Admin** and **Recruiter** modules have already been completed. The Job Seeker module must seamlessly integrate with the existing application, following the same design language, architecture, and user experience standards while providing a personalized experience tailored to each candidate.
+
+---
+
+# Technology Stack
+
+Use:
+
+* React
+* Tailwind CSS
+* React Router
+* Axios (or the existing API service)
+* React Hook Form (preferred for forms)
+* Appropriate state management already used in the project (Context API/Redux/Zustand if applicable)
+
+Maintain consistency with the existing Antigravity design system, spacing, typography, reusable components, and color palette.
+
+---
+
+# Authentication Flow
+
+The Job Seeker must use the **same Login and Sign Up page** already implemented in Antigravity.
+
+Do not create a separate authentication page.
+
+After successful authentication:
+
+### First-Time Login
+
+If the backend indicates that the candidate profile does not exist, automatically redirect the user to the Candidate Profile Wizard.
+
+---
+
+### Returning User
+
+If the backend indicates that the candidate profile already exists, redirect the user directly to their Portfolio Dashboard.
+
+---
+
+# Candidate Onboarding Wizard
+
+Create a clean, modern, professional multi-step onboarding wizard.
+
+The onboarding experience should feel similar to modern SaaS platforms such as:
+
+* LinkedIn
+* Notion
+* Stripe Dashboard
+* Vercel
+
+The interface should be elegant, intuitive, minimal, and distraction-free while remaining consistent with the rest of Antigravity.
+
+---
+
+## Step 1 — Personal Information
+
+* First Name
+* Last Name
+* Headline
+* Date of Birth
+* Gender
+* Phone
+* Alternate Phone
+* Email
+
+---
+
+## Step 2 — Professional Details
+
+* Current Company
+* Current Designation
+* Current Salary
+* Expected Salary
+* Notice Period
+* Preferred Location
+* Work Authorization
+* Professional Summary
+
+---
+
+## Step 3 — Social Links
+
+* LinkedIn
+* GitHub
+* Portfolio
+* Website
+
+---
+
+## Step 4 — Address
+
+* Address
+* City
+* State
+* Country
+* Postal Code
+
+---
+
+## Step 5 — Education
+
+Allow users to:
+
+* Add Education
+* Edit Education
+* Delete Education
+
+Support unlimited education records.
+
+---
+
+## Step 6 — Experience
+
+Allow users to:
+
+* Add Experience
+* Edit Experience
+* Delete Experience
+
+Support unlimited experience records.
+
+---
+
+## Step 7 — Projects
+
+Allow users to:
+
+* Add Projects
+* Edit Projects
+* Delete Projects
+
+Support unlimited projects.
+
+---
+
+## Step 8 — Certifications
+
+Allow users to:
+
+* Add Certifications
+* Edit Certifications
+* Delete Certifications
+
+Each certification should include:
+
+* Certificate Name
+* Issuer
+* Issue Date
+* Expiry Date
+* Credential ID
+* Credential URL
+
+Additionally, allow the candidate to upload the actual certification document.
+
+Supported uploads:
+
+* PDF
+* JPG
+* JPEG
+* PNG
+* WEBP
+
+The certification upload component should include:
+
+* Drag & Drop upload area
+* Browse File button
+* Upload progress indicator
+* Selected filename preview
+* Replace uploaded file
+* Remove uploaded file before submission
+
+Integrate the upload component with the existing backend APIs.
+
+---
+
+## Step 9 — Languages
+
+Allow multiple language entries.
+
+Each language should include:
+
+* Language
+* Proficiency
+
+Allowed proficiency values:
+
+* Beginner
+* Intermediate
+* Professional
+* Native
+
+Users should be able to dynamically add and remove languages.
+
+---
+
+## Step 10 — Skills
+
+Allow multiple skills.
+
+Each skill should include:
+
+* Skill
+* Proficiency
+* Years of Experience
+
+Users should be able to dynamically add and remove skills.
+
+---
+
+# Wizard Features
+
+The onboarding wizard should support:
+
+* Previous
+* Next
+* Save & Continue
+* Save Draft
+* Progress Indicator
+* Step Navigation
+* Completion Percentage
+* Unsaved Changes Warning
+* Auto-save support (if available through backend APIs)
+
+Users should be able to leave the onboarding process and resume later without losing previously saved information.
+
+---
+
+# Portfolio Dashboard
+
+After onboarding is complete, redirect the candidate to their Portfolio Dashboard.
+
+The dashboard should present the candidate's information in a polished, resume-like digital portfolio.
+
+Include dedicated sections for:
+
+* Profile Header
+* About
+* Contact Information
+* Social Links
+* Education
+* Experience
+* Projects
+* Certifications
+* Languages
+* Skills
+
+Certification documents should be displayed with options to:
+
+* View
+* Download
+
+using the URLs returned by the backend.
+
+---
+
+# Portfolio Editing
+
+Returning users should be able to edit every section of their portfolio independently.
+
+Provide:
+
+* Edit actions
+* Delete actions with confirmation
+* Add New buttons
+* Inline editing where appropriate
+* Modal or drawer-based forms where appropriate
+
+Users should never have to recreate the entire portfolio to update a single section.
+
+---
+
+# Form Validation
+
+Implement frontend validation for:
+
+* Required fields
+* Email format
+* URL format
+* Phone number format
+* Date validation
+* Numeric validation
+* File type validation
+* File size validation
+
+Display clear, user-friendly validation messages.
+
+---
+
+# Loading & Error States
+
+Implement:
+
+* Skeleton loaders
+* Loading spinners
+* Disabled buttons during API requests
+* Success notifications
+* Error notifications
+* Empty states
+* Retry functionality
+
+The UI should remain responsive and polished throughout all API interactions.
+
+---
+
+# Responsive Design
+
+The interface must be fully responsive across:
+
+* Desktop
+* Laptop
+* Tablet
+* Mobile
+
+Use Tailwind CSS responsive utilities to ensure a seamless experience on all screen sizes.
+
+---
+
+# UI Consistency Across Antigravity
+
+The **Admin** and **Recruiter** modules have already been fully implemented.
+
+The **Job Seeker** module must feel like a natural extension of the same application and should strictly follow the existing Antigravity design system.
+
+Reuse the existing design language wherever possible, including:
+
+* Application layout
+* Navigation structure
+* Sidebar behavior
+* Header patterns
+* Cards
+* Buttons
+* Input fields
+* Dropdowns
+* Tables
+* Modals
+* Drawers
+* Typography
+* Color palette
+* Icons
+* Spacing
+* Border radius
+* Shadows
+* Hover effects
+* Focus states
+* Animations
+* Skeleton loaders
+* Empty states
+* Notification styles
+* Reusable components
+
+Do **not** introduce a new design language.
+
+The Candidate module should appear as the third integrated module of Antigravity, maintaining complete visual and functional consistency with the Admin and Recruiter experiences.
+
+---
+
+# Personalized Candidate Experience
+
+Unlike the Admin and Recruiter modules, the Candidate interface should provide a personalized experience based on the candidate's own profile.
+
+As profile information is completed, the interface should dynamically adapt using the candidate's data.
+
+Examples include:
+
+* Display the candidate's profile photo throughout the application.
+* Display the candidate's full name and professional headline prominently.
+* Personalize dashboard greetings using the candidate's information.
+* Show profile completion percentage.
+* Highlight completed sections while encouraging completion of incomplete sections.
+* Present Education, Experience, Projects, Certifications, Languages, and Skills as a professional resume-style portfolio rather than simple form data.
+* Instantly reflect profile updates throughout the interface.
+* Clearly associate uploaded certification documents with their respective certification entries.
+* Allow candidates to easily view and download uploaded certificates.
+* Make the portfolio feel like the candidate's own professional website and digital identity.
+
+The overall experience should give candidates the feeling of building and maintaining their own premium professional portfolio.
+
+---
+
+# UI & UX Guidelines
+
+The entire module should be:
+
+* Modern
+* Clean
+* Premium
+* Minimal
+* Professional
+* Accessible
+* Responsive
+* Elegant
+
+Use:
+
+* Consistent spacing
+* Rounded cards
+* Soft shadows
+* Smooth transitions
+* Hover effects
+* Focus states
+* Elegant typography
+* Subtle animations
+* High readability
+
+The UI should match the quality and polish of the existing Admin and Recruiter modules while maintaining a candidate-centric experience.
+
+---
+
+# Code Quality
+
+Ensure the implementation is:
+
+* Modular
+* Component-based
+* Reusable
+* Maintainable
+* Scalable
+
+Follow the same project architecture, folder structure, reusable component patterns, API integration strategy, coding conventions, and best practices already established within the Admin and Recruiter modules.
+
+Prefer extending existing shared components over creating duplicate implementations wherever possible.
+
+---
+
+# Deliverables
+
+Implement the complete frontend for the Job Seekers / Users module, including:
+
+* Candidate onboarding wizard
+* Multi-step forms
+* Dynamic Education management
+* Dynamic Experience management
+* Dynamic Projects management
+* Dynamic Certifications management
+* Certification file upload interface
+* Dynamic Languages management
+* Dynamic Skills management
+* Portfolio Dashboard
+* Portfolio editing functionality
+* Personalized candidate dashboard
+* Resume-style portfolio presentation
+* View and download functionality for uploaded certificates
+* API integration with the existing backend
+* Responsive layouts
+* Frontend validation
+* Loading, success, and error states
+* Modern React component architecture
+* Tailwind CSS styling
+* Complete visual consistency with the Admin and Recruiter modules
+
+**Do not modify the backend, database schema, authentication flow, business logic, APIs, or server-side functionality. Consume the existing backend implementation and focus exclusively on delivering a polished, production-ready, React + Tailwind CSS frontend that integrates seamlessly with the existing Antigravity ecosystem while providing a personalized and premium experience for every Job Seeker.**

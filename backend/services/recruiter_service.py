@@ -160,3 +160,16 @@ def update_application_status(db: Session, app_id: int, company_id: int, recruit
     db.commit()
     
     return application
+
+def get_candidate_portfolio(db: Session, company_id: int, candidate_id: int):
+    # Verify that the candidate has applied to at least one job at this company
+    application = db.query(models.JobApplication).join(models.Job).filter(
+        models.JobApplication.candidate_id == candidate_id,
+        models.Job.company_id == company_id
+    ).first()
+    
+    if not application:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have access to this candidate's portfolio")
+        
+    from services.candidate_service import get_full_portfolio
+    return get_full_portfolio(db, candidate_id)

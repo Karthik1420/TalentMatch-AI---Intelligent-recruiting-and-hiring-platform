@@ -1,0 +1,294 @@
+# Antigravity Frontend + Backend Implementation Prompt – Job Matches Module
+
+## Objective
+
+Implement the **Job Matches** module for the **Job Seeker** side of Antigravity.
+
+This module will act as the primary job discovery experience for candidates, allowing them to browse all active job postings published by recruiters, view complete job descriptions, and apply directly through the platform.
+
+The implementation should integrate seamlessly with the existing Admin, Recruiter, and Candidate modules while maintaining the same design language and architecture.
+
+---
+
+# Navigation
+
+Add a new navigation item in the Candidate Dashboard sidebar:
+
+**Job Matches**
+
+When the candidate clicks this navigation item, they should be redirected to the Job Matches page.
+
+---
+
+# Job Matches Page
+
+The Job Matches page should display **all active job postings** created by recruiters across all companies.
+
+The jobs should be displayed in a clean, responsive card-based layout.
+
+Each card should contain only the essential information required for a quick overview.
+
+Include:
+
+* Company Logo
+* Company Name
+* Job Title
+* Job Location
+* Employment Type
+* Experience Required
+* Salary Range (if available)
+* Number of Open Positions
+* Skills Required (top 4–5 skills)
+* Date Posted
+* Recruiter Name (optional if already available)
+* A short preview of the job description (2–3 lines)
+* View More button
+
+The layout should feel modern, similar to LinkedIn Jobs, Wellfound, or Indeed, while remaining consistent with the Antigravity UI.
+
+---
+
+# Search & Filtering
+
+At the top of the Job Matches page, provide a search bar and filtering options.
+
+Support filtering by:
+
+* Job Title
+* Company
+* Location
+* Skills
+* Employment Type
+* Experience Level
+* Salary Range
+* Remote / Hybrid / Onsite
+* Date Posted
+
+Filters should update the displayed jobs without requiring a page refresh.
+
+---
+
+# View More (Job Details)
+
+When the candidate clicks **View More**, open a modal (popup) overlay displaying the complete Job Description.
+
+The modal should include:
+
+## Company Information
+
+* Company Logo
+* Company Name
+
+---
+
+## Job Information
+
+* Job Title
+* Employment Type
+* Experience Required
+* Salary
+* Location
+* Number of Open Positions
+* Posted Date
+* Application Deadline (if applicable)
+
+---
+
+## Job Description
+
+Display the complete recruiter-entered job description.
+
+---
+
+## Responsibilities
+
+Display all responsibilities.
+
+---
+
+## Required Skills
+
+Display all required skills.
+
+---
+
+## Preferred Skills
+
+Display preferred skills (if provided).
+
+---
+
+## Qualifications
+
+Display education and experience requirements.
+
+---
+
+## Additional Information
+
+Display any additional recruiter-provided information.
+
+---
+
+# Modal Actions
+
+At the bottom of the popup, provide two buttons:
+
+**Apply**
+
+**Close**
+
+Close should simply dismiss the popup.
+
+---
+
+# Apply Workflow
+
+When the candidate clicks **Apply**, the application process should begin immediately.
+
+The application should automatically use the candidate's existing profile already stored within Antigravity.
+
+The backend should automatically attach:
+
+* Candidate Profile
+* Resume
+* Education
+* Experience
+* Projects
+* Certifications
+* Skills
+* Languages
+
+The candidate should not be required to upload the same information again.
+
+After a successful application:
+
+* Display a success notification.
+* Update the Apply button to indicate that the candidate has already applied.
+* Prevent duplicate applications for the same job.
+* The candidate should still be able to view the job details.
+
+---
+
+# Application Lifecycle
+
+Submitting an application should initiate the complete application lifecycle.
+
+The backend should create a new application record linking:
+
+* Candidate
+* Job Posting
+* Recruiter
+* Company
+
+The application should be visible to the recruiter who created the job posting.
+
+Recruiters should automatically see newly applied candidates within their existing Recruiter Dashboard.
+
+The candidate's application should begin with the default status:
+
+**Applied**
+
+Future status updates will be managed by the Recruiter module.
+
+Example lifecycle:
+
+* Applied
+* Under Review
+* Shortlisted
+* Interview Scheduled
+* Selected
+* Rejected
+
+The Job Matches module should integrate with this lifecycle without requiring additional candidate actions.
+
+---
+
+# Candidate Experience
+
+Once applied, the job card should visually indicate the application status.
+
+Examples:
+
+* Applied
+* Under Review
+* Shortlisted
+* Interview Scheduled
+* Selected
+* Rejected
+
+Candidates should immediately know which jobs they have already applied for.
+
+---
+
+# User Experience
+
+The interface should be polished and responsive.
+
+Include:
+
+* Company logos
+* Skeleton loaders while jobs load
+* Empty state if no jobs exist
+* Responsive cards
+* Smooth hover animations
+* Loading indicators
+* Success and error notifications
+* Smooth modal transitions
+* Accessible keyboard navigation
+
+---
+
+# Design Consistency
+
+This module must follow the same design system already established in the Admin, Recruiter, and Candidate modules.
+
+Reuse existing:
+
+* Cards
+* Buttons
+* Typography
+* Colors
+* Icons
+* Layouts
+* Modals
+* Form components
+* Loading indicators
+* Notification components
+
+Do not introduce a different visual style.
+
+---
+
+# Backend Integration
+
+Consume the existing APIs for:
+
+* Fetching all active job postings
+* Fetching complete job details
+* Applying for a job
+* Checking whether the candidate has already applied
+* Retrieving application status
+
+Do not duplicate business logic on the frontend.
+
+---
+
+# Deliverables
+
+Implement the complete Job Matches feature, including:
+
+* Job Matches navigation item
+* Job listing page
+* Responsive job cards
+* Search and filtering
+* Job Details modal
+* Apply functionality
+* Application status updates
+* Prevention of duplicate applications
+* Integration with the existing recruiter application pipeline
+* Complete responsiveness
+* Consistent Antigravity UI/UX
+* Seamless integration with the existing Admin, Recruiter, and Candidate modules
+
+The final implementation should provide a smooth, intuitive job discovery and application experience where candidates can browse all recruiter-posted jobs, view detailed job descriptions, apply with a single click using their existing profile, and automatically enter the recruiter-managed application lifecycle.

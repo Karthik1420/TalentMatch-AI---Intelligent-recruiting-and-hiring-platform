@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { ArrowLeft, User, MessageSquare, Check, X, Clock, ChevronDown } from 'lucide-react';
+import { ArrowLeft, User, MessageSquare, Check, X, Clock, ChevronDown, Eye } from 'lucide-react';
+import CandidatePortfolio from '../candidate/Portfolio/CandidatePortfolio';
 
 const STATUS_COLORS = {
   Applied: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
@@ -19,6 +20,11 @@ const RecruiterApplications = ({ jobId, jobTitle, onBack }) => {
   const [selectedApp, setSelectedApp] = useState(null);
   const [newStatus, setNewStatus] = useState('');
   const [comment, setComment] = useState('');
+
+  // State for Candidate Portfolio Modal
+  const [viewingApp, setViewingApp] = useState(null);
+  const [portfolioData, setPortfolioData] = useState(null);
+  const [loadingPortfolio, setLoadingPortfolio] = useState(false);
 
   const fetchApplications = async () => {
     try {
@@ -68,6 +74,30 @@ const RecruiterApplications = ({ jobId, jobTitle, onBack }) => {
     }
   };
 
+  const handleViewProfile = async (app) => {
+    setViewingApp(app);
+    setLoadingPortfolio(true);
+    setPortfolioData(null);
+    try {
+      const res = await fetch(`http://localhost:8000/recruiter/candidates/${app.candidate_id}/portfolio`, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPortfolioData(data);
+      } else {
+        alert("Could not load candidate portfolio");
+        setViewingApp(null);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error loading portfolio");
+      setViewingApp(null);
+    } finally {
+      setLoadingPortfolio(false);
+    }
+  };
+
   if (loading) return <div className="p-8 text-center text-slate-500">Loading applications...</div>;
 
   return (
@@ -98,7 +128,11 @@ const RecruiterApplications = ({ jobId, jobTitle, onBack }) => {
                     <User className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900 dark:text-white">Candidate #{app.candidate_id}</h3>
+                    <h3 className="font-semibold text-slate-900 dark:text-white">
+                      {app.candidate?.candidate_profile?.first_name 
+                        ? `${app.candidate.candidate_profile.first_name} ${app.candidate.candidate_profile.last_name}`
+                        : `Candidate #${app.candidate_id}`}
+                    </h3>
                     <div className="flex items-center gap-3 mt-1 text-sm">
                       <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
                         <Clock className="w-3.5 h-3.5" /> Applied on {new Date(app.applied_at).toLocaleDateString()}
@@ -111,7 +145,13 @@ const RecruiterApplications = ({ jobId, jobTitle, onBack }) => {
                 </div>
                 
                 {/* Actions */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => handleViewProfile(app)}
+                    className="p-2 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors flex items-center gap-1 text-sm font-medium"
+                  >
+                    <Eye className="w-4 h-4" /> <span className="hidden sm:inline">Profile</span>
+                  </button>
                   <select 
                     className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500"
                     value=""
@@ -169,6 +209,29 @@ const RecruiterApplications = ({ jobId, jobTitle, onBack }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Candidate Profile Modal */}
+      {viewingApp && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-8">
+          <div className="bg-slate-50 dark:bg-slate-950 rounded-2xl w-full max-w-5xl h-full max-h-[90vh] shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 shrink-0">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <User className="w-5 h-5" /> Candidate #{viewingApp.candidate_id} Profile
+              </h3>
+              <button onClick={() => setViewingApp(null)} className="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"><X className="w-6 h-6"/></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+              {loadingPortfolio ? (
+                <div className="flex items-center justify-center h-full text-slate-500">Loading profile data...</div>
+              ) : portfolioData ? (
+                <CandidatePortfolio data={portfolioData} readOnly={true} />
+              ) : (
+                <div className="flex items-center justify-center h-full text-red-500">Failed to load data</div>
+              )}
+            </div>
           </div>
         </div>
       )}

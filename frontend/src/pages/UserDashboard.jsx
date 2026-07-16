@@ -3,9 +3,13 @@ import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LogOut, Moon, Sun, Menu, X, 
-  UserCircle, FileText, Search, Briefcase
+  UserCircle, FileText, Search, Briefcase, Loader2
 } from 'lucide-react';
 import logo from '../assets/logo.png';
+import candidateApi from '../api/candidateApi';
+import CandidateWizard from '../components/candidate/Wizard/CandidateWizard';
+import CandidatePortfolio from '../components/candidate/Portfolio/CandidatePortfolio';
+import JobMatches from '../components/candidate/JobMatches/JobMatches';
 
 const UserDashboard = () => {
   const { logout, user } = useAuth();
@@ -16,11 +20,64 @@ const UserDashboard = () => {
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
+  
+  const [portfolioData, setPortfolioData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+
+  const fetchPortfolio = async () => {
+    setIsLoading(true);
+    try {
+      const response = await candidateApi.getPortfolio();
+      setPortfolioData(response.data);
+      setNeedsOnboarding(false);
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        setNeedsOnboarding(true);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPortfolio();
+  }, []);
 
   useEffect(() => {
     if (isDarkMode) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
   }, [isDarkMode]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+      </div>
+    );
+  }
+
+  if (needsOnboarding) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200 p-4 sm:p-8">
+        <div className="flex justify-between items-center mb-8 max-w-4xl mx-auto">
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="Logo" className="w-8 h-8 object-contain" />
+            <span className="font-semibold text-xl tracking-tight">TalentMatch AI</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+            <button onClick={logout} className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white">
+              Logout
+            </button>
+          </div>
+        </div>
+        <CandidateWizard initialData={null} onComplete={fetchPortfolio} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans overflow-hidden transition-colors duration-200">
@@ -69,10 +126,14 @@ const UserDashboard = () => {
               {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-slate-700">
-              <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-700 dark:text-indigo-300 text-sm font-bold">
-                J
+              <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-700 dark:text-indigo-300 text-sm font-bold overflow-hidden">
+                {portfolioData?.profile?.profile_photo ? (
+                    <img src={`http://localhost:8000${portfolioData.profile.profile_photo}`} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                    portfolioData?.profile?.first_name?.charAt(0) || 'J'
+                )}
               </div>
-              <span className="text-sm font-medium">Job Seeker</span>
+              <span className="text-sm font-medium">{portfolioData?.profile?.first_name} {portfolioData?.profile?.last_name}</span>
             </div>
           </div>
         </header>
@@ -109,22 +170,8 @@ const UserDashboard = () => {
             
             <AnimatePresence mode="wait">
               {activeTab === 'profile' && (
-                <motion.div key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
-                    <div className="p-6 sm:p-8 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20">
-                      <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Welcome to TalentMatch AI</h2>
-                      <p className="text-slate-500 dark:text-slate-400 text-sm">Your unique Job Seeker ID is <span className="font-semibold text-indigo-600 dark:text-indigo-400">#{user?.id}</span></p>
-                    </div>
-                    <div className="p-12 text-center flex flex-col items-center">
-                      <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mb-6">
-                        <UserCircle className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-                      </div>
-                      <h3 className="text-lg font-semibold mb-2">Profile Feature Coming Soon</h3>
-                      <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                        We are currently building the comprehensive profile module where you can list your skills, experience, and career preferences.
-                      </p>
-                    </div>
-                  </div>
+                <motion.div key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                  <CandidatePortfolio data={portfolioData} refreshData={fetchPortfolio} />
                 </motion.div>
               )}
 
@@ -143,16 +190,8 @@ const UserDashboard = () => {
               )}
 
               {activeTab === 'matches' && (
-                <motion.div key="matches" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-12 text-center flex flex-col items-center">
-                    <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mb-6">
-                      <Search className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">AI Job Matching</h3>
-                    <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                      Once your profile and resume are completed, TalentMatch AI will automatically surface the best roles for you right here.
-                    </p>
-                  </div>
+                <motion.div key="matches" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                  <JobMatches />
                 </motion.div>
               )}
             </AnimatePresence>
