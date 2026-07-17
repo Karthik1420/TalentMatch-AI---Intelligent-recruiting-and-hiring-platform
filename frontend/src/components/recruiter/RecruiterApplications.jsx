@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { ArrowLeft, User, MessageSquare, Check, X, Clock, ChevronDown, Eye } from 'lucide-react';
+import { ArrowLeft, User, MessageSquare, Check, X, Clock, ChevronDown, Eye, Sparkles, ChevronUp } from 'lucide-react';
 import CandidatePortfolio from '../candidate/Portfolio/CandidatePortfolio';
 
 const STATUS_COLORS = {
@@ -21,10 +21,12 @@ const RecruiterApplications = ({ jobId, jobTitle, onBack }) => {
   const [newStatus, setNewStatus] = useState('');
   const [comment, setComment] = useState('');
 
-  // State for Candidate Portfolio Modal
   const [viewingApp, setViewingApp] = useState(null);
   const [portfolioData, setPortfolioData] = useState(null);
   const [loadingPortfolio, setLoadingPortfolio] = useState(false);
+
+  // State for AI Evaluation Expand
+  const [expandedAIEval, setExpandedAIEval] = useState(null);
 
   const fetchApplications = async () => {
     try {
@@ -98,6 +100,12 @@ const RecruiterApplications = ({ jobId, jobTitle, onBack }) => {
     }
   };
 
+  const sortedApplications = [...applications].sort((a, b) => {
+    const scoreA = a.ai_evaluation?.ats_score || 0;
+    const scoreB = b.ai_evaluation?.ats_score || 0;
+    return scoreB - scoreA;
+  });
+
   if (loading) return <div className="p-8 text-center text-slate-500">Loading applications...</div>;
 
   return (
@@ -120,58 +128,159 @@ const RecruiterApplications = ({ jobId, jobTitle, onBack }) => {
             No applications received yet for this position.
           </div>
         ) : (
-          <div className="divide-y divide-slate-200 dark:divide-slate-800">
-            {applications.map(app => (
-              <div key={app.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                    <User className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 dark:text-white">
-                      {app.candidate?.candidate_profile?.first_name 
-                        ? `${app.candidate.candidate_profile.first_name} ${app.candidate.candidate_profile.last_name}`
-                        : `Candidate #${app.candidate_id}`}
-                    </h3>
-                    <div className="flex items-center gap-3 mt-1 text-sm">
-                      <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                        <Clock className="w-3.5 h-3.5" /> Applied on {new Date(app.applied_at).toLocaleDateString()}
-                      </span>
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[app.status] || STATUS_COLORS.Applied}`}>
-                        {app.status}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Actions */}
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={() => handleViewProfile(app)}
-                    className="p-2 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors flex items-center gap-1 text-sm font-medium"
-                  >
-                    <Eye className="w-4 h-4" /> <span className="hidden sm:inline">Profile</span>
-                  </button>
-                  <select 
-                    className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500"
-                    value=""
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        setSelectedApp(app);
-                        setNewStatus(e.target.value);
-                      }
-                    }}
-                  >
-                    <option value="" disabled>Change Status...</option>
-                    <option value="Applied">Revert to Applied</option>
-                    <option value="Screened">Move to Screened</option>
-                    <option value="Interview">Move to Interview</option>
-                    <option value="Hired">Mark as Hired</option>
-                    <option value="Rejected">Mark as Rejected</option>
-                  </select>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+                  <th className="px-6 py-4 font-semibold text-sm text-slate-900 dark:text-white">Candidate</th>
+                  <th className="px-6 py-4 font-semibold text-sm text-slate-900 dark:text-white">Applied Date</th>
+                  <th className="px-6 py-4 font-semibold text-sm text-slate-900 dark:text-white">Status</th>
+                  <th className="px-6 py-4 font-semibold text-sm text-slate-900 dark:text-white">ATS Score</th>
+                  <th className="px-6 py-4 font-semibold text-sm text-slate-900 dark:text-white text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                {sortedApplications.map(app => (
+                  <Fragment key={app.id}>
+                    <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                            <User className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-slate-900 dark:text-white">
+                              {app.candidate?.candidate_profile?.first_name 
+                                ? `${app.candidate.candidate_profile.first_name} ${app.candidate.candidate_profile.last_name}`
+                                : `Candidate #${app.candidate_id}`}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
+                        {new Date(app.applied_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${STATUS_COLORS[app.status] || STATUS_COLORS.Applied}`}>
+                          {app.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {app.ai_evaluation ? (
+                          <button 
+                            onClick={() => setExpandedAIEval(expandedAIEval === app.id ? null : app.id)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
+                              app.ai_evaluation.ats_score >= 80 
+                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50' 
+                                : app.ai_evaluation.ats_score >= 50 
+                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50' 
+                                : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50'
+                            }`}
+                          >
+                            <Sparkles className="w-3.5 h-3.5" /> 
+                            {app.ai_evaluation.ats_score} / 100
+                            {expandedAIEval === app.id ? <ChevronUp className="w-3.5 h-3.5 ml-1" /> : <ChevronDown className="w-3.5 h-3.5 ml-1" />}
+                          </button>
+                        ) : (
+                          <span className="text-slate-400 text-sm italic">Pending...</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button 
+                            onClick={() => handleViewProfile(app)}
+                            className="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors tooltip"
+                            title="View Profile"
+                          >
+                            <Eye className="w-5 h-5" />
+                          </button>
+                          <select 
+                            className="px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500 w-32"
+                            value=""
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                setSelectedApp(app);
+                                setNewStatus(e.target.value);
+                              }
+                            }}
+                          >
+                            <option value="" disabled>Status...</option>
+                            <option value="Applied">Applied</option>
+                            <option value="Screened">Screened</option>
+                            <option value="Interview">Interview</option>
+                            <option value="Hired">Hired</option>
+                            <option value="Rejected">Rejected</option>
+                          </select>
+                        </div>
+                      </td>
+                    </tr>
+                    
+                    {/* Accordion Row for AI Evaluation */}
+                    {expandedAIEval === app.id && app.ai_evaluation && (
+                      <tr>
+                        <td colSpan="5" className="p-0 border-b border-slate-200 dark:border-slate-800">
+                          <div className="px-8 py-6 bg-indigo-50/50 dark:bg-indigo-900/10 shadow-inner">
+                            <div className="flex items-center gap-2 mb-4">
+                              <Sparkles className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                              <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">AI Candidate Analysis</h4>
+                            </div>
+                            
+                            <div className="space-y-4 text-sm text-slate-700 dark:text-slate-300">
+                              <div>
+                                <span className="font-semibold text-slate-900 dark:text-white">Summary:</span>
+                                <p className="mt-1 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 leading-relaxed shadow-sm">
+                                  {app.ai_evaluation.summary}
+                                </p>
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 mb-2">
+                                    <Check className="w-4 h-4"/> Strengths (Pros)
+                                  </span>
+                                  <ul className="space-y-2 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm list-disc list-outside pl-5">
+                                    {app.ai_evaluation.pros ? (
+                                      (() => {
+                                        try {
+                                          return JSON.parse(app.ai_evaluation.pros).map((pro, idx) => <li key={idx} className="pl-1 leading-relaxed">{pro}</li>);
+                                        } catch (e) {
+                                          return <li className="pl-1 leading-relaxed">{app.ai_evaluation.pros}</li>;
+                                        }
+                                      })()
+                                    ) : (
+                                      <li className="text-slate-500 italic">None listed</li>
+                                    )}
+                                  </ul>
+                                </div>
+                                
+                                <div>
+                                  <span className="font-semibold text-red-600 dark:text-red-400 flex items-center gap-1.5 mb-2">
+                                    <X className="w-4 h-4"/> Gaps (Cons)
+                                  </span>
+                                  <ul className="space-y-2 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm list-disc list-outside pl-5">
+                                    {app.ai_evaluation.cons ? (
+                                      (() => {
+                                        try {
+                                          return JSON.parse(app.ai_evaluation.cons).map((con, idx) => <li key={idx} className="pl-1 leading-relaxed">{con}</li>);
+                                        } catch (e) {
+                                          return <li className="pl-1 leading-relaxed">{app.ai_evaluation.cons}</li>;
+                                        }
+                                      })()
+                                    ) : (
+                                      <li className="text-slate-500 italic">None listed</li>
+                                    )}
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

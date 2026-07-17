@@ -1,0 +1,150 @@
+TAG-BASED JOB MATCHING SYSTEM IMPLEMENTATION
+Implement a complete Tag-Based Job Matching System across both the frontend and backend of the existing TalentMatch AI Recruitment Platform.
+The implementation must seamlessly integrate with the current project architecture, database structure, authentication system, coding standards, and UI design. Do not modify any existing functionality unless required for this feature.
+Objective
+Introduce a standardized tagging system that allows both candidates and recruiters to select predefined job-role and skill tags from the database.
+These tags will be used to intelligently match candidates with relevant job openings and provide personalized job recommendations.
+The system should not rely on manually typed text. Every tag must already exist in the database and be selected from predefined options.
+Candidate Side
+Career Preference Tags
+Every candidate should be able to select multiple predefined tags representing the types of jobs they are interested in.
+Examples include (not limited to):
+Full Stack Developer
+Frontend Developer
+Backend Developer
+AI Developer
+Machine Learning Engineer
+Data Scientist
+Python Developer
+Java Developer
+React Developer
+Node.js Developer
+Flutter Developer
+Android Developer
+iOS Developer
+DevOps Engineer
+Cloud Engineer
+Cyber Security Analyst
+UI/UX Designer
+QA Engineer
+Software Engineer
+Product Manager
+Data Analyst
+Business Analyst
+Database Administrator
+AI Engineer
+Prompt Engineer
+Blockchain Developer
+The candidate should be able to select multiple tags according to their career interests.
+The interface should provide a clean multi-select experience where users simply click on the predefined tags they want.
+No free-text tag creation should be allowed.
+The selected tags must be stored in the database and linked to the candidate profile.
+Recruiter Side
+While creating or editing a job posting, recruiters should also select multiple predefined tags from the exact same master list stored in the database.
+These tags should represent the primary roles and skills required for that job.
+For example, a Full Stack Developer job may include:
+Full Stack Developer
+React
+FastAPI
+PostgreSQL
+REST API
+Recruiters should only be able to select from the predefined database tags.
+Recruiters must not be allowed to create custom tags.
+The selected tags should be stored along with the job posting.
+Database Design
+Create a centralized master tag system.
+The implementation should include:
+A master table containing all predefined tags.
+Appropriate relationship tables that associate:
+Candidates with Tags.
+Job Postings with Tags.
+The database design should support many-to-many relationships so that both candidates and jobs can be linked to multiple tags efficiently.
+All tags should originate from the single master table to ensure consistency across the platform.
+Job Matching Logic
+The "Job Search / Match" page should no longer display jobs randomly or only by keyword.
+Instead, every available job should be compared against the candidate's selected tags.
+The system should calculate how closely the candidate's tags match the tags attached to each job posting.
+Jobs with the highest overlap should be ranked first.
+Jobs with lower overlap should appear below.
+The comparison should happen automatically whenever jobs are fetched for the candidate.
+Recommendation Indicator
+The platform should visually identify highly suitable jobs.
+If a job has a strong tag match with the candidate's selected tags, display a clear recommendation indicator.
+The indicator should use a green color to immediately attract the candidate's attention and communicate that the role is highly recommended.
+This recommendation should appear directly on the job card in the "Job Search / Match" page.
+The design should remain clean, modern, and consistent with the existing UI.
+The recommendation indicator should only be shown for jobs that have a high similarity between the candidate's tags and the job's tags.
+Jobs with weak or poor tag matches should not display this indicator.
+Matching Process
+Whenever a candidate opens the "Job Search / Match" section:
+Retrieve the candidate's selected tags.
+Retrieve all available job postings.
+Compare the candidate's tags with each job's tags.
+Calculate the degree of overlap.
+Rank the jobs from highest match to lowest match.
+Display the ranked results.
+Highlight highly matching jobs using the green recommendation indicator.
+The comparison should be based solely on the predefined tags selected by both parties.
+Backend Requirements
+Implement the complete backend required for this feature, including:
+Master Tags table.
+Candidate–Tag relationship.
+Job–Tag relationship.
+Database models.
+Database migrations.
+CRUD operations.
+API endpoints for retrieving predefined tags.
+API endpoints for assigning tags to candidates.
+API endpoints for assigning tags to jobs.
+Matching service that compares candidate tags against job tags.
+Ranking logic based on tag similarity.
+Updated APIs to return jobs sorted by highest match.
+Proper validation and error handling.
+The matching logic should be efficient and scalable, avoiding unnecessary database queries and ensuring good performance even with a large number of users and job postings.
+Frontend Requirements
+Update the frontend to support the new tag system.
+Candidate Interface
+Fetch predefined tags from the backend.
+Display them as selectable chips/tags.
+Allow multi-selection.
+Save selected tags to the candidate profile.
+Preselect previously saved tags when editing the profile.
+Recruiter Interface
+Fetch the same predefined tags.
+Allow recruiters to select multiple tags while creating or editing a job posting.
+Save the selected tags with the job.
+Job Search / Match Page
+Fetch jobs ordered by their matching score.
+Clearly display the associated job tags on each job card.
+Display the green recommendation indicator on jobs with a high tag match.
+Maintain the existing design language and responsiveness.
+Expected Workflow
+Candidate
+Candidate logs in
+↓
+Updates profile
+↓
+Selects multiple predefined career tags
+↓
+Tags are saved to the database
+Recruiter
+Recruiter creates a job posting
+↓
+Selects multiple predefined job tags
+↓
+Tags are saved with the job posting
+Job Matching
+Candidate opens Job Search / Match
+↓
+Backend retrieves the candidate's selected tags
+↓
+Backend compares them against every job's predefined tags
+↓
+Jobs are ranked based on tag similarity
+↓
+Highly matching jobs are identified
+↓
+Frontend displays ranked jobs
+↓
+Jobs with a strong match are visually highlighted using a green recommendation indicator, helping the candidate quickly identify roles that best align with their career interests.
+The complete implementation should preserve the existing application architecture, coding standards, authentication flow, UI consistency, and database conventions while integrating this feature end-to-end across both the frontend and backend.

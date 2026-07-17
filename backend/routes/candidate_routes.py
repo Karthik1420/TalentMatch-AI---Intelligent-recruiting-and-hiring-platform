@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -213,8 +213,8 @@ def get_job_details(job_id: int, db: Session = Depends(get_db), current_user: mo
     return candidate_service.get_job_details(db=db, job_id=job_id)
 
 @router.post("/jobs/{job_id}/apply", response_model=schemas.JobApplicationResponse)
-def apply_for_job(job_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_candidate)):
-    return candidate_service.apply_for_job(db=db, job_id=job_id, user_id=current_user.id)
+def apply_for_job(job_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_candidate)):
+    return candidate_service.apply_for_job(db=db, job_id=job_id, user_id=current_user.id, background_tasks=background_tasks)
 
 @router.get("/applications", response_model=List[schemas.JobApplicationResponse])
 def get_my_applications(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_candidate)):

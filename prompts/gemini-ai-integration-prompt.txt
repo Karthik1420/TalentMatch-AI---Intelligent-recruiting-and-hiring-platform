@@ -1,0 +1,137 @@
+GEMINI AI INTEGRATION PROMPT
+We have successfully completed all three modules of the TalentMatch AI Recruitment Platform.
+The next step is to integrate Google Gemini AI using the following configuration:
+API Key: [REDACTED]
+Model: gemini-3.5-flash
+Objective
+Integrate Gemini AI into the existing application so that whenever a candidate applies for a job, the system automatically analyzes the candidate's profile against the selected Job Description (JD).
+The entire AI analysis must happen in the background immediately after the application is submitted, without requiring any manual action from either the candidate or the recruiter.
+The generated results must be stored permanently in a separate database table so that recruiters can instantly view them from their dashboard.
+Existing Flow
+The existing workflow is:
+Candidate → Views Job
+↓
+Clicks View More
+↓
+Clicks Apply
+At the moment the candidate successfully applies, trigger the Gemini AI analysis.
+AI Processing Logic
+After a successful job application:
+Fetch the complete candidate profile from the database.
+Fetch the complete job posting that the candidate applied for.
+Send both datasets to Gemini.
+The AI must thoroughly analyze and compare:
+Candidate profile
+Skills
+Education
+Experience
+Projects
+Certifications
+Resume details
+Job Description
+Required skills
+Preferred qualifications
+Responsibilities
+Any other relevant information already available in the database
+The AI should perform a complete ATS-style evaluation.
+AI Output
+Gemini should generate the following:
+1. ATS Score
+Generate an ATS compatibility score between 0 and 100 representing how well the candidate matches the Job Description.
+2. Candidate Summary
+Generate a concise professional summary explaining how the candidate aligns with the role.
+This summary should be recruiter-focused.
+3. Pros
+Generate a list of the candidate's strengths with respect to the posted job.
+Examples include:
+Matching technical skills
+Relevant projects
+Appropriate education
+Relevant experience
+Strong certifications
+Domain knowledge
+The output should be based only on the candidate profile and the JD.
+4. Cons
+Generate a list of gaps or weaknesses relative to the Job Description.
+Examples include:
+Missing skills
+Insufficient experience
+Missing certifications
+Lack of required technologies
+Missing qualifications
+Again, only compare against the Job Description.
+Database Storage
+Create a dedicated database table to store the AI evaluation.
+The table should contain:
+id
+application_id (Foreign Key)
+candidate_id
+recruiter_id
+job_id
+ats_score
+summary
+pros
+cons
+created_at
+Store every AI-generated result in this table immediately after the candidate applies.
+Recruiter Dashboard Integration
+The recruiter dashboard should fetch the stored AI evaluation from the database.
+Do not call Gemini again when the recruiter opens the dashboard.
+Instead:
+Read the stored ATS Score
+Read the stored Summary
+Read the stored Pros
+Read the stored Cons
+Display the already stored information for every applied candidate.
+Backend Requirements
+Implement the complete backend integration.
+This includes:
+Gemini API integration
+API service for AI analysis
+Prompt generation
+Sending candidate and job data to Gemini
+Receiving structured AI response
+Parsing the response
+Saving the response to the database
+Proper error handling
+Database model
+CRUD operations
+Required API endpoint updates
+Necessary service layer modifications
+Ensure the AI processing is triggered automatically during the job application process.
+Frontend Requirements
+Update the recruiter dashboard to consume the stored AI analysis.
+For every applied candidate, display:
+ATS Score
+Candidate Summary
+Pros
+Cons
+The frontend should only fetch the stored database values through the existing backend APIs.
+Do not invoke Gemini directly from the frontend.
+Expected Result
+The final workflow should be:
+Candidate opens a Job
+↓
+Candidate clicks View More
+↓
+Candidate clicks Apply
+↓
+Application is saved successfully
+↓
+Backend automatically sends the Candidate Profile and Job Description to Gemini 3.5 Flash
+↓
+Gemini performs a complete ATS-style comparison
+↓
+Gemini returns:
+ATS Score
+Summary
+Pros
+Cons
+↓
+Backend stores the generated results in the dedicated AI evaluation table
+↓
+Recruiter opens the dashboard
+↓
+The recruiter immediately sees the stored ATS Score, Summary, Pros, and Cons for every candidate without any additional AI processing.
+Implement the complete backend and frontend integration while preserving the existing architecture, coding style, database design, authentication flow, and project structure. The implementation should seamlessly integrate with the current TalentMatch AI application without altering the existing functionality or user workflow.
+

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, UploadFile
+from fastapi import HTTPException, UploadFile, BackgroundTasks
 import models, schemas
 import os
 import uuid
@@ -8,6 +8,7 @@ from datetime import datetime
 import cloudinary
 import cloudinary.uploader
 import config
+from services.ai_service import evaluate_candidate_application
 
 # Configure Cloudinary
 if config.CLOUDINARY_CLOUD_NAME and config.CLOUDINARY_API_KEY and config.CLOUDINARY_API_SECRET:
@@ -306,7 +307,7 @@ def get_job_details(db: Session, job_id: int):
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
-def apply_for_job(db: Session, job_id: int, user_id: int):
+def apply_for_job(db: Session, job_id: int, user_id: int, background_tasks: BackgroundTasks = None):
     # Check if candidate profile exists
     profile = get_candidate_profile_by_user_id(db, user_id)
     if not profile:
@@ -345,6 +346,10 @@ def apply_for_job(db: Session, job_id: int, user_id: int):
     )
     db.add(history)
     db.commit()
+    
+    # Trigger AI Evaluation
+    if background_tasks:
+        background_tasks.add_task(evaluate_candidate_application, new_app.id)
     
     return new_app
 

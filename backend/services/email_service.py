@@ -63,4 +63,21 @@ def send_recruiter_credentials(to_email: str, password: str, company_name: str):
             server.send_message(msg)
         print(f"Credentials email sent successfully to {to_email}")
     except Exception as e:
-        print(f"Failed to send email to {to_email}: {e}")
+        print(f"Failed to send email to {to_email} via SMTP: {e}. Falling back to Resend.")
+        try:
+            # pyrefly: ignore [missing-import]
+            import resend
+            from config import RESEND_API_KEY
+            if RESEND_API_KEY:
+                resend.api_key = RESEND_API_KEY
+                r = resend.Emails.send({
+                  "from": "onboarding@resend.dev",
+                  "to": to_email,
+                  "subject": msg['Subject'],
+                  "html": html_content
+                })
+                print(f"Credentials email sent successfully to {to_email} via Resend fallback")
+            else:
+                print("RESEND_API_KEY not configured. Backup email failed.")
+        except Exception as resend_e:
+            print(f"Failed to send backup email to {to_email} via Resend: {resend_e}")

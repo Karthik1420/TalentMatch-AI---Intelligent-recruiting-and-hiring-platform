@@ -213,6 +213,7 @@ class JobApplication(Base):
     job = relationship("Job", back_populates="applications")
     candidate = relationship("User", back_populates="job_applications")
     history = relationship("JobApplicationHistory", back_populates="application")
+    ai_evaluation = relationship("AIEvaluation", back_populates="application", uselist=False)
 
 class JobApplicationHistory(Base):
     __tablename__ = "job_application_history"
@@ -375,3 +376,25 @@ class CandidateSkill(Base):
 
     candidate = relationship("CandidateProfile", back_populates="skills")
     skill = relationship("Skill", back_populates="candidate_skills")
+
+class AIEvaluation(Base):
+    __tablename__ = "ai_evaluations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    application_id = Column(Integer, ForeignKey("job_applications.id"), unique=True, nullable=False)
+    candidate_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    recruiter_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    job_id = Column(Integer, ForeignKey("jobs.id"), nullable=False)
+    
+    ats_score = Column(Integer, nullable=True)
+    summary = Column(Text, nullable=True)
+    pros = Column(Text, nullable=True) # Will store as JSON string or text list
+    cons = Column(Text, nullable=True) # Will store as JSON string or text list
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    application = relationship("JobApplication", back_populates="ai_evaluation")
+    candidate = relationship("User", foreign_keys=[candidate_id])
+    recruiter = relationship("User", foreign_keys=[recruiter_id])
+    job = relationship("Job")

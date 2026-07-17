@@ -230,6 +230,21 @@ class JobApplicationCandidate(BaseModel):
     class Config:
         from_attributes = True
 
+class AIEvaluationResponse(BaseModel):
+    id: int
+    application_id: int
+    candidate_id: int
+    recruiter_id: int
+    job_id: int
+    ats_score: Optional[int] = None
+    summary: Optional[str] = None
+    pros: Optional[str] = None
+    cons: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 class JobApplicationResponse(BaseModel):
     id: int
     job_id: int
@@ -239,6 +254,7 @@ class JobApplicationResponse(BaseModel):
     updated_at: Optional[datetime] = None
     history: List[JobApplicationHistoryResponse] = []
     candidate: Optional[JobApplicationCandidate] = None
+    ai_evaluation: Optional[AIEvaluationResponse] = None
 
     class Config:
         from_attributes = True
