@@ -28,7 +28,7 @@ const Register = () => {
     setIsLoading(true);
     
     try {
-      await axios.post('http://localhost:8000/auth/register', {
+      await axios.post('https://talentmatch-ai-intelligent-recruiting.onrender.com/auth/register', {
         email,
         password
       });

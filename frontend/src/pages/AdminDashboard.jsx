@@ -60,7 +60,7 @@ const AdminDashboard = () => {
   const [success, setSuccess] = useState('');
 
   const api = axios.create({
-    baseURL: 'http://localhost:8000',
+    baseURL: 'https://talentmatch-ai-intelligent-recruiting.onrender.com',
     headers: { Authorization: `Bearer ${user?.token}` }
   });
 

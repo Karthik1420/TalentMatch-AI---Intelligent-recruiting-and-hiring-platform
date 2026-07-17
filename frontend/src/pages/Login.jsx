@@ -30,7 +30,7 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      const response = await axios.post('http://localhost:8000/auth/login', {
+      const response = await axios.post('https://talentmatch-ai-intelligent-recruiting.onrender.com/auth/login', {
         email,
         password
       });

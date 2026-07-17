@@ -110,9 +110,14 @@ def create_profile(db: Session, profile_data: schemas.CandidateProfileCreate, us
     if file:
         file_url = handle_file_upload(file, folder="profile_photos")
     
-    profile_dict = profile_data.dict(exclude={"profile_photo"})
+    profile_dict = profile_data.dict(exclude={"profile_photo", "tag_ids"})
     new_profile = models.CandidateProfile(**profile_dict, user_id=user_id, profile_photo=file_url)
     db.add(new_profile)
+    
+    if profile_data.tag_ids is not None:
+        tags = db.query(models.Tag).filter(models.Tag.id.in_(profile_data.tag_ids)).all()
+        new_profile.career_tags = tags
+
     db.commit()
     db.refresh(new_profile)
     return new_profile
@@ -128,7 +133,10 @@ def update_profile(db: Session, profile_data: schemas.CandidateProfileUpdate, us
         profile.profile_photo = handle_file_upload(file, folder="profile_photos")
     
     for key, value in profile_data.dict(exclude_unset=True).items():
-        if key != "profile_photo": # handled above
+        if key == "tag_ids":
+            tags = db.query(models.Tag).filter(models.Tag.id.in_(value)).all()
+            profile.career_tags = tags
+        elif key != "profile_photo": # handled above
             setattr(profile, key, value)
         
     db.commit()
@@ -282,7 +290,7 @@ def delete_skill(db: Session, skill_id: int, user_id: int):
 
 # --- Job Matches (Job Seeker Module 2) ---
 
-def get_active_jobs(db: Session, title: str = None, company_name: str = None, location: str = None, employment_type: str = None):
+def get_active_jobs(db: Session, user_id: int, title: str = None, company_name: str = None, location: str = None, employment_type: str = None):
     query = db.query(models.Job).filter(models.Job.status == models.JobStatusEnum.Open)
     
     if title:
@@ -299,7 +307,21 @@ def get_active_jobs(db: Session, title: str = None, company_name: str = None, lo
     if company_name:
         query = query.join(models.Company).filter(models.Company.name.ilike(f"%{company_name}%"))
         
-    return query.all()
+    jobs = query.all()
+    
+    profile = get_candidate_profile_by_user_id(db, user_id)
+    candidate_tag_ids = set()
+    if profile and profile.career_tags:
+        candidate_tag_ids = {tag.id for tag in profile.career_tags}
+        
+    for job in jobs:
+        job_tag_ids = {tag.id for tag in job.tags} if job.tags else set()
+        job.tag_match_score = len(candidate_tag_ids.intersection(job_tag_ids))
+        
+    # Sort by tag_match_score descending
+    jobs.sort(key=lambda j: getattr(j, 'tag_match_score', 0), reverse=True)
+    
+    return jobs
 
 def get_job_details(db: Session, job_id: int):
     job = db.query(models.Job).filter(models.Job.id == job_id).first()

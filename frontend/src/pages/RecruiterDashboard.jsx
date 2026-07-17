@@ -32,7 +32,7 @@ const RecruiterDashboard = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch('http://localhost:8000/recruiter/me', {
+        const res = await fetch('https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/me', {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         if (res.ok) {

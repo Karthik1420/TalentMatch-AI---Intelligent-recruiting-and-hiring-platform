@@ -25,7 +25,7 @@ def upload_image(file: UploadFile = File(...)):
     with open(file_location, "wb+") as file_object:
         shutil.copyfileobj(file.file, file_object)
         
-    return {"url": f"http://localhost:8000/static/images/{new_filename}"}
+    return {"url": f"https://talentmatch-ai-intelligent-recruiting.onrender.com/static/images/{new_filename}"}
 
 @router.get("/companies", response_model=List[schemas.CompanyResponse])
 def get_companies(db: Session = Depends(get_db)):

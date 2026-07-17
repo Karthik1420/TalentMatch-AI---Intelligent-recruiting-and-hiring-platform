@@ -11,7 +11,10 @@ router = APIRouter(
     tags=["Candidate / Job Seeker"]
 )
 
-# --- Master Data for Candidate (Skills and Languages) ---
+# --- Master Data for Candidate (Skills, Languages, Tags) ---
+@router.get("/master/tags", response_model=List[schemas.TagResponse])
+def get_master_tags(db: Session = Depends(get_db)):
+    return db.query(models.Tag).all()
 @router.get("/master/skills", response_model=List[schemas.SkillResponse])
 def get_master_skills(db: Session = Depends(get_db)):
     return db.query(models.Skill).all()
@@ -205,7 +208,7 @@ def get_active_jobs(
     current_user: models.User = Depends(auth.get_current_candidate)
 ):
     return candidate_service.get_active_jobs(
-        db=db, title=title, company_name=company_name, location=location, employment_type=employment_type
+        db=db, user_id=current_user.id, title=title, company_name=company_name, location=location, employment_type=employment_type
     )
 
 @router.get("/jobs/{job_id}", response_model=schemas.JobResponse)

@@ -30,7 +30,7 @@ const RecruiterApplications = ({ jobId, jobTitle, onBack }) => {
 
   const fetchApplications = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/recruiter/jobs/${jobId}/applications`, {
+      const res = await fetch(`https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/jobs/${jobId}/applications`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       if (res.ok) {
@@ -53,7 +53,7 @@ const RecruiterApplications = ({ jobId, jobTitle, onBack }) => {
     if (!selectedApp || !newStatus) return;
     
     try {
-      const res = await fetch(`http://localhost:8000/recruiter/applications/${selectedApp.id}/status`, {
+      const res = await fetch(`https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/applications/${selectedApp.id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ const RecruiterApplications = ({ jobId, jobTitle, onBack }) => {
     setLoadingPortfolio(true);
     setPortfolioData(null);
     try {
-      const res = await fetch(`http://localhost:8000/recruiter/candidates/${app.candidate_id}/portfolio`, {
+      const res = await fetch(`https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/candidates/${app.candidate_id}/portfolio`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       if (res.ok) {

@@ -7,6 +7,7 @@ import DynamicListSteps from './DynamicListSteps';
 const STEPS = [
   'Personal Information',
   'Professional Details',
+  'Career Preferences',
   'Social Links',
   'Address',
   'Education',
@@ -91,7 +92,7 @@ const CandidateWizard = ({ initialData, onComplete }) => {
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.2 }}
                 >
-                    {currentStep < 4 ? (
+                    {currentStep < 5 ? (
                         <BasicInfoSteps 
                             step={currentStep} 
                             initialData={initialData?.profile || {}} 

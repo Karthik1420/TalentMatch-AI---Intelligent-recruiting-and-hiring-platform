@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'https://talentmatch-ai-intelligent-recruiting.onrender.com';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
@@ -35,6 +35,7 @@ const candidateApi = {
   },
 
   // Master Data
+  getMasterTags: () => axios.get(`${API_BASE_URL}/candidate/master/tags`, getAuthHeaders()),
   getMasterSkills: () => axios.get(`${API_BASE_URL}/candidate/master/skills`, getAuthHeaders()),
   createMasterSkill: (data) => axios.post(`${API_BASE_URL}/candidate/master/skills`, data, getAuthHeaders()),
   getMasterLanguages: () => axios.get(`${API_BASE_URL}/candidate/master/languages`, getAuthHeaders()),

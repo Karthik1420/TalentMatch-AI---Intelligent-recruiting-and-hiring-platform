@@ -30,14 +30,47 @@ const BasicInfoSteps = ({ step, initialData, onNext, onBack, isFirstStep, profil
     city: '',
     state: '',
     country: '',
-    postal_code: ''
+    country: '',
+    postal_code: '',
+    tag_ids: []
   });
+
+  const [masterTags, setMasterTags] = useState([]);
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const res = await candidateApi.getMasterTags();
+        setMasterTags(res.data);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchTags();
+  }, []);
 
   useEffect(() => {
     if (initialData) {
-      setFormData(prev => ({ ...prev, ...initialData }));
+      let tag_ids = [];
+      if (initialData.career_tags) {
+        tag_ids = initialData.career_tags.map(t => t.id);
+      } else if (initialData.tag_ids) {
+        tag_ids = initialData.tag_ids;
+      }
+      setFormData(prev => ({ ...prev, ...initialData, tag_ids }));
     }
   }, [initialData]);
+
+  const toggleTag = (id) => {
+    setFormData(prev => {
+      const current = prev.tag_ids || [];
+      if (current.includes(id)) {
+        return { ...prev, tag_ids: current.filter(t => t !== id) };
+      } else {
+        return { ...prev, tag_ids: [...current, id] };
+      }
+    });
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -146,6 +179,29 @@ const BasicInfoSteps = ({ step, initialData, onNext, onBack, isFirstStep, profil
         )}
 
         {step === 2 && (
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">Select Career Preferences</h4>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Choose the roles and technologies you are interested in to help us recommend the best jobs for you.</p>
+            <div className="flex flex-wrap gap-2">
+              {masterTags.map(tag => (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => toggleTag(tag.id)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
+                    (formData.tag_ids || []).includes(tag.id)
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-indigo-500'
+                  }`}
+                >
+                  {tag.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">LinkedIn URL</label>
@@ -166,7 +222,7 @@ const BasicInfoSteps = ({ step, initialData, onNext, onBack, isFirstStep, profil
           </div>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Address</label>

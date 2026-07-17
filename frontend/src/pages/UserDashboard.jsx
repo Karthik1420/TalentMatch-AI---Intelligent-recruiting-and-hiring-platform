@@ -128,7 +128,7 @@ const UserDashboard = () => {
             <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-slate-700">
               <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-700 dark:text-indigo-300 text-sm font-bold overflow-hidden">
                 {portfolioData?.profile?.profile_photo ? (
-                    <img src={`http://localhost:8000${portfolioData.profile.profile_photo}`} alt="Profile" className="w-full h-full object-cover" />
+                    <img src={`https://talentmatch-ai-intelligent-recruiting.onrender.com${portfolioData.profile.profile_photo}`} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                     portfolioData?.profile?.first_name?.charAt(0) || 'J'
                 )}

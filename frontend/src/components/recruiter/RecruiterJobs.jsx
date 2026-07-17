@@ -30,6 +30,7 @@ const INITIAL_FORM_DATA = {
   requirements: '',
   preferred_qualifications: '',
   required_skills_text: '',
+  tag_ids: [],
   salary_min: '',
   salary_max: '',
   currency: 'USD',
@@ -50,7 +51,7 @@ const RecruiterJobs = ({ onViewApplications }) => {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch('http://localhost:8000/recruiter/jobs', {
+      const res = await fetch('https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/jobs', {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       if (res.ok) {
@@ -64,9 +65,36 @@ const RecruiterJobs = ({ onViewApplications }) => {
     }
   };
 
+  const [masterTags, setMasterTags] = useState([]);
+
   useEffect(() => {
     fetchJobs();
+    const fetchTags = async () => {
+      try {
+        const res = await fetch('https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/tags', {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setMasterTags(data);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchTags();
   }, []);
+
+  const toggleTag = (id) => {
+    setFormData(prev => {
+      const current = prev.tag_ids || [];
+      if (current.includes(id)) {
+        return { ...prev, tag_ids: current.filter(t => t !== id) };
+      } else {
+        return { ...prev, tag_ids: [...current, id] };
+      }
+    });
+  };
 
   const handleCreateJob = async (statusOverride = null) => {
     try {
@@ -84,8 +112,8 @@ const RecruiterJobs = ({ onViewApplications }) => {
 
       const isEditing = !!editingJobId;
       const url = isEditing 
-        ? `http://localhost:8000/recruiter/jobs/${editingJobId}`
-        : 'http://localhost:8000/recruiter/jobs';
+        ? `https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/jobs/${editingJobId}`
+        : 'https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/jobs';
         
       const res = await fetch(url, {
         method: isEditing ? 'PUT' : 'POST',
@@ -119,13 +147,15 @@ const RecruiterJobs = ({ onViewApplications }) => {
     Object.keys(INITIAL_FORM_DATA).forEach(key => {
       if (job[key] !== undefined && job[key] !== null) {
         if (key === 'application_deadline') {
-          // format date for datetime-local input
           populatedData[key] = new Date(job[key]).toISOString().slice(0, 16);
         } else {
           populatedData[key] = job[key];
         }
       }
     });
+    if (job.tags) {
+      populatedData.tag_ids = job.tags.map(t => t.id);
+    }
     setFormData(populatedData);
     setEditingJobId(job.id);
     setIsCreating(true);
@@ -136,7 +166,7 @@ const RecruiterJobs = ({ onViewApplications }) => {
     if (!window.confirm("Are you sure you want to delete this job posting? This action cannot be undone.")) return;
     
     try {
-      const res = await fetch(`http://localhost:8000/recruiter/jobs/${jobId}`, {
+      const res = await fetch(`https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/jobs/${jobId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${user.token}` }
       });
@@ -154,7 +184,7 @@ const RecruiterJobs = ({ onViewApplications }) => {
   const handleToggleStatus = async (job) => {
     const newStatus = job.status === 'Open' ? 'Closed' : 'Open';
     try {
-      const res = await fetch(`http://localhost:8000/recruiter/jobs/${job.id}`, {
+      const res = await fetch(`https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/jobs/${job.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -416,6 +446,28 @@ const RecruiterJobs = ({ onViewApplications }) => {
                   {renderInput('Minimum CGPA', 'minimum_cgpa', 'number', 'e.g. 3.0')}
                   {renderInput('Required Skills (Comma separated)', 'required_skills_text', 'text', 'e.g. React, Python, AWS')}
                 </div>
+                
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Job Tags (Predefined)</label>
+                  <p className="text-xs text-slate-500 mb-2">Select the relevant tags from the database to improve job matching accuracy.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {masterTags.map(tag => (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => toggleTag(tag.id)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                          (formData.tag_ids || []).includes(tag.id)
+                            ? 'bg-indigo-600 text-white border-indigo-600'
+                            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-indigo-500'
+                        }`}
+                      >
+                        {tag.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {renderQuill('Technical Requirements', 'requirements')}
                 {renderQuill('Preferred Qualifications', 'preferred_qualifications')}
               </div>

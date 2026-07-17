@@ -5,7 +5,7 @@ from datetime import datetime
 from models import (
     EmploymentTypeEnum, WorkModeEnum, JobStatusEnum,
     SkillImportanceEnum, SkillLevelEnum, ApplicationStatusEnum,
-    LanguageProficiencyEnum
+    LanguageProficiencyEnum, InterviewStatusEnum
 )
 
 class RoleEnum(str, Enum):
@@ -113,6 +113,16 @@ class SkillResponse(SkillCreate):
     class Config:
         from_attributes = True
 
+# --- Tags Schemas ---
+class TagCreate(BaseModel):
+    name: str
+
+class TagResponse(TagCreate):
+    id: int
+
+    class Config:
+        from_attributes = True
+
 # --- Job Required Skills Schemas ---
 class JobRequiredSkillCreate(BaseModel):
     skill_id: int
@@ -162,6 +172,7 @@ class JobCreate(BaseModel):
     
     application_deadline: Optional[datetime] = None
     status: JobStatusEnum = JobStatusEnum.Draft
+    tag_ids: Optional[List[int]] = []
 
 class JobUpdate(BaseModel):
     title: Optional[str] = None
@@ -188,6 +199,7 @@ class JobUpdate(BaseModel):
     required_skills_text: Optional[str] = None
     application_deadline: Optional[datetime] = None
     status: Optional[JobStatusEnum] = None
+    tag_ids: Optional[List[int]] = None
 
 class JobResponse(JobCreate):
     id: int
@@ -197,6 +209,8 @@ class JobResponse(JobCreate):
     updated_at: Optional[datetime] = None
     required_skills: List[JobRequiredSkillResponse] = []
     company: Optional[CompanyResponse] = None
+    tags: List[TagResponse] = []
+    tag_match_score: Optional[int] = 0
 
     class Config:
         from_attributes = True
@@ -245,6 +259,23 @@ class AIEvaluationResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class InterviewCreate(BaseModel):
+    scheduled_time: datetime
+    duration_minutes: int = 30
+
+class InterviewResponse(BaseModel):
+    id: int
+    application_id: int
+    scheduled_by: int
+    scheduled_time: datetime
+    duration_minutes: int
+    meet_link: Optional[str] = None
+    status: InterviewStatusEnum
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
 class JobApplicationResponse(BaseModel):
     id: int
     job_id: int
@@ -255,6 +286,7 @@ class JobApplicationResponse(BaseModel):
     history: List[JobApplicationHistoryResponse] = []
     candidate: Optional[JobApplicationCandidate] = None
     ai_evaluation: Optional[AIEvaluationResponse] = None
+    interviews: List[InterviewResponse] = []
 
     class Config:
         from_attributes = True
@@ -400,6 +432,7 @@ class CandidateProfileCreate(BaseModel):
     summary: Optional[str] = None
     resume_url: Optional[str] = None
     profile_photo: Optional[str] = None
+    tag_ids: Optional[List[int]] = []
 
 class CandidateProfileUpdate(BaseModel):
     first_name: Optional[str] = None
@@ -429,12 +462,14 @@ class CandidateProfileUpdate(BaseModel):
     summary: Optional[str] = None
     resume_url: Optional[str] = None
     profile_photo: Optional[str] = None
+    tag_ids: Optional[List[int]] = None
 
 class CandidateProfileResponse(CandidateProfileCreate):
     id: int
     user_id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
+    career_tags: List[TagResponse] = []
 
     class Config:
         from_attributes = True

@@ -26,11 +26,18 @@ const JobCard = ({ job, onViewMore, applicationStatus }) => {
             </p>
           </div>
         </div>
-        {isApplied && (
-          <span className="px-2.5 py-1 text-xs font-medium bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400 rounded-full">
-            {applicationStatus}
-          </span>
-        )}
+        <div className="flex flex-col items-end gap-2">
+          {job.tag_match_score > 0 && (
+            <span className="px-2.5 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 rounded-full flex items-center gap-1 shadow-sm border border-emerald-200 dark:border-emerald-500/30">
+              🌟 Highly Recommended
+            </span>
+          )}
+          {isApplied && (
+            <span className="px-2.5 py-1 text-xs font-medium bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400 rounded-full border border-green-200 dark:border-green-500/30">
+              {applicationStatus}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Meta Info */}
@@ -57,6 +64,22 @@ const JobCard = ({ job, onViewMore, applicationStatus }) => {
           <span className="truncate">{formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}</span>
         </div>
       </div>
+
+      {/* Tags Preview */}
+      {job.tags && job.tags.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {job.tags.slice(0, 3).map((tag, idx) => (
+            <span key={`tag-${idx}`} className="px-2 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-xs font-medium">
+              {tag.name}
+            </span>
+          ))}
+          {job.tags.length > 3 && (
+            <span className="px-2 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full text-xs font-medium">
+              +{job.tags.length - 3} more
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Skills Preview */}
       {job.required_skills && job.required_skills.length > 0 && (

@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Boolean, Float, Text
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Boolean, Float, Text, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -43,6 +43,11 @@ class ApplicationStatusEnum(str, enum.Enum):
     Interview = "Interview"
     Rejected = "Rejected"
     Hired = "Hired"
+
+class InterviewStatusEnum(str, enum.Enum):
+    Scheduled = "Scheduled"
+    Completed = "Completed"
+    Cancelled = "Cancelled"
 
 class LanguageProficiencyEnum(str, enum.Enum):
     Beginner = "Beginner"
@@ -116,6 +121,8 @@ class Recruiter(Base):
     linkedin_url = Column(String, nullable=True)
     profile_picture = Column(String, nullable=True)
     
+    google_refresh_token = Column(String, nullable=True)
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -171,6 +178,7 @@ class Job(Base):
     posted_by_recruiter = relationship("Recruiter", back_populates="jobs")
     required_skills = relationship("JobRequiredSkill", back_populates="job")
     applications = relationship("JobApplication", back_populates="job")
+    tags = relationship("Tag", secondary="job_tags", back_populates="jobs")
 
 class Skill(Base):
     __tablename__ = "skills"
@@ -214,6 +222,7 @@ class JobApplication(Base):
     candidate = relationship("User", back_populates="job_applications")
     history = relationship("JobApplicationHistory", back_populates="application")
     ai_evaluation = relationship("AIEvaluation", back_populates="application", uselist=False)
+    interviews = relationship("Interview", back_populates="application")
 
 class JobApplicationHistory(Base):
     __tablename__ = "job_application_history"
@@ -232,6 +241,25 @@ class JobApplicationHistory(Base):
     # Relationships
     application = relationship("JobApplication", back_populates="history")
     changer = relationship("User")
+
+class Interview(Base):
+    __tablename__ = "interviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    application_id = Column(Integer, ForeignKey("job_applications.id"), nullable=False)
+    scheduled_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    scheduled_time = Column(DateTime(timezone=True), nullable=False)
+    duration_minutes = Column(Integer, default=30)
+    google_event_id = Column(String, nullable=True)
+    meet_link = Column(String, nullable=True)
+    
+    status = Column(Enum(InterviewStatusEnum), default=InterviewStatusEnum.Scheduled)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    application = relationship("JobApplication", back_populates="interviews")
+    recruiter = relationship("User", foreign_keys=[scheduled_by])
 
 # --- Job Seekers / Candidate Portfolio Models ---
 
@@ -271,7 +299,6 @@ class CandidateProfile(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    # Relationships
     user = relationship("User", back_populates="candidate_profile")
     education = relationship("Education", back_populates="candidate", cascade="all, delete")
     experience = relationship("Experience", back_populates="candidate", cascade="all, delete")
@@ -279,6 +306,7 @@ class CandidateProfile(Base):
     certifications = relationship("Certification", back_populates="candidate", cascade="all, delete")
     languages = relationship("CandidateLanguage", back_populates="candidate", cascade="all, delete")
     skills = relationship("CandidateSkill", back_populates="candidate", cascade="all, delete")
+    career_tags = relationship("Tag", secondary="candidate_tags", back_populates="candidates")
 
 class Education(Base):
     __tablename__ = "education"
@@ -393,8 +421,34 @@ class AIEvaluation(Base):
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationships
     application = relationship("JobApplication", back_populates="ai_evaluation")
     candidate = relationship("User", foreign_keys=[candidate_id])
     recruiter = relationship("User", foreign_keys=[recruiter_id])
     job = relationship("Job")
+
+# --- Tags System ---
+
+candidate_tags = Table(
+    "candidate_tags",
+    Base.metadata,
+    Column("candidate_id", Integer, ForeignKey("candidate_profiles.id"), primary_key=True),
+    Column("tag_id", Integer, ForeignKey("tags.id"), primary_key=True)
+)
+
+job_tags = Table(
+    "job_tags",
+    Base.metadata,
+    Column("job_id", Integer, ForeignKey("jobs.id"), primary_key=True),
+    Column("tag_id", Integer, ForeignKey("tags.id"), primary_key=True)
+)
+
+class Tag(Base):
+    __tablename__ = "tags"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True, nullable=False)
+    
+    # Relationships
+    candidates = relationship("CandidateProfile", secondary=candidate_tags, back_populates="career_tags")
+    jobs = relationship("Job", secondary=job_tags, back_populates="tags")
+

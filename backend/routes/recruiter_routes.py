@@ -5,6 +5,8 @@ from database import get_db
 from auth import get_current_recruiter
 import schemas, models
 from services import recruiter_service
+from fastapi.responses import RedirectResponse
+from services.google_calendar_service import get_auth_url, exchange_code
 
 router = APIRouter(
     prefix="/recruiter",
@@ -76,6 +78,11 @@ def remove_skill_from_job(job_id: int, skill_id: int, current_user: models.User 
     profile = get_recruiter_profile(current_user, db)
     return recruiter_service.remove_skill_from_job(db=db, job_id=job_id, skill_id=skill_id, company_id=profile.company_id)
 
+@router.get("/tags", response_model=List[schemas.TagResponse])
+def get_master_tags(db: Session = Depends(get_db)):
+    """Get list of all available tags"""
+    return db.query(models.Tag).all()
+
 @router.get("/skills", response_model=List[schemas.SkillResponse])
 def get_all_skills(db: Session = Depends(get_db)):
     """Get list of all available skills (Master Table)"""
@@ -109,3 +116,46 @@ def get_candidate_portfolio(candidate_id: int, current_user: models.User = Depen
     """Recruiter views the portfolio of a candidate who applied to their jobs"""
     profile = get_recruiter_profile(current_user, db)
     return recruiter_service.get_candidate_portfolio(db=db, company_id=profile.company_id, candidate_id=candidate_id)
+
+@router.get("/google-auth/login")
+def google_auth_login(current_user: models.User = Depends(get_current_recruiter)):
+    """Generate Google Auth URL. We pass the recruiter user ID in the state parameter."""
+    state = str(current_user.id)
+    auth_url = get_auth_url(state)
+    return {"auth_url": auth_url}
+
+@router.get("/google-auth/callback")
+def google_auth_callback(code: str, state: str, db: Session = Depends(get_db)):
+    """Handle Google Auth callback."""
+    # state contains recruiter user_id
+    try:
+        recruiter_user_id = int(state)
+    except ValueError:
+        return RedirectResponse(url="https://talentmatchai-xi.vercel.app/recruiter/dashboard?google_auth=error")
+        
+    profile = db.query(models.Recruiter).filter(models.Recruiter.user_id == recruiter_user_id).first()
+    if not profile:
+        return RedirectResponse(url="https://talentmatchai-xi.vercel.app/recruiter/dashboard?google_auth=error")
+        
+    try:
+        refresh_token = exchange_code(code)
+        if refresh_token:
+            profile.google_refresh_token = refresh_token
+            db.commit()
+    except Exception as e:
+        print(f"Failed to exchange code: {e}")
+        return RedirectResponse(url="https://talentmatchai-xi.vercel.app/recruiter/dashboard?google_auth=error")
+        
+    return RedirectResponse(url="https://talentmatchai-xi.vercel.app/recruiter/dashboard?google_auth=success")
+
+@router.post("/applications/{app_id}/schedule-interview", response_model=schemas.InterviewResponse)
+def schedule_interview(app_id: int, interview_data: schemas.InterviewCreate, current_user: models.User = Depends(get_current_recruiter), db: Session = Depends(get_db)):
+    """Schedule an interview using Google Calendar."""
+    profile = get_recruiter_profile(current_user, db)
+    return recruiter_service.schedule_interview(
+        db=db,
+        app_id=app_id,
+        company_id=profile.company_id,
+        recruiter_id=current_user.id,
+        interview_data=interview_data
+    )
