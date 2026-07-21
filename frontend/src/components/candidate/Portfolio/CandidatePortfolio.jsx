@@ -179,7 +179,7 @@ const CandidatePortfolio = ({ data, refreshData, readOnly = false }) => {
           <div className="flex justify-between items-end -mt-12 mb-4">
             <div className="w-24 h-24 rounded-full border-4 border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-800 overflow-hidden flex items-center justify-center text-3xl font-bold text-slate-400 relative group">
               {profile.profile_photo ? (
-                <img src={profile.profile_photo.startsWith('http') ? profile.profile_photo : `https://talentmatch-ai-intelligent-recruiting.onrender.com${profile.profile_photo}`} alt="Profile" className="w-full h-full object-cover" />
+                <img src={profile.profile_photo.startsWith('http') ? profile.profile_photo : `${(import.meta.env.VITE_API_URL || 'https://talentmatch-ai-intelligent-recruiting.onrender.com')}${profile.profile_photo}`} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 profile.first_name.charAt(0)
               )}
@@ -326,7 +326,7 @@ const CandidatePortfolio = ({ data, refreshData, readOnly = false }) => {
                 <h4 className="font-medium text-slate-900 dark:text-white">{cert.certificate_name}</h4>
                 <p className="text-sm text-slate-500">{cert.issuer}</p>
                 {cert.certificate_file_url && (
-                  <a href={cert.certificate_file_url.startsWith('http') ? cert.certificate_file_url : `https://talentmatch-ai-intelligent-recruiting.onrender.com${cert.certificate_file_url}`} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded-md transition-colors">
+                  <a href={cert.certificate_file_url.startsWith('http') ? cert.certificate_file_url : `${(import.meta.env.VITE_API_URL || 'https://talentmatch-ai-intelligent-recruiting.onrender.com')}${cert.certificate_file_url}`} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded-md transition-colors">
                     <Download className="w-3 h-3" /> View Certificate
                   </a>
                 )}

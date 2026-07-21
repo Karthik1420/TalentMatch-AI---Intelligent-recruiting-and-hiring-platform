@@ -71,6 +71,30 @@ def delete_job(db: Session, job_id: int, company_id: int):
     db.commit()
     return True
 
+def get_interviews(db: Session, recruiter_id: int):
+    interviews = db.query(models.Interview).filter(models.Interview.scheduled_by == recruiter_id).all()
+    results = []
+    for iv in interviews:
+        app = iv.application
+        candidate = app.candidate
+        job = app.job
+        profile = candidate.candidate_profile
+        candidate_name = f"{profile.first_name} {profile.last_name}" if profile else f"Candidate #{candidate.id}"
+        
+        results.append({
+            "id": iv.id,
+            "application_id": iv.application_id,
+            "scheduled_by": iv.scheduled_by,
+            "scheduled_time": iv.scheduled_time,
+            "duration_minutes": iv.duration_minutes,
+            "meet_link": iv.meet_link,
+            "status": iv.status,
+            "created_at": iv.created_at,
+            "candidate_name": candidate_name,
+            "job_title": job.title,
+            "candidate_id": candidate.id
+        })
+    return results
 
 def get_skills(db: Session):
     return db.query(models.Skill).all()
@@ -193,38 +217,44 @@ def schedule_interview(db: Session, app_id: int, company_id: int, recruiter_id: 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found or access denied")
         
     recruiter_profile = db.query(models.Recruiter).filter(models.Recruiter.user_id == recruiter_id).first()
-    if not recruiter_profile or not recruiter_profile.google_refresh_token:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Google Calendar is not connected. Please connect your account first.")
+    if not recruiter_profile:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Recruiter profile not found.")
         
     candidate_user = application.candidate
     candidate_email = candidate_user.email
-    recruiter_user = recruiter_profile.user
-    recruiter_email = recruiter_user.email
     job_title = application.job.title
     company_name = application.job.company.name
     
-    from services.google_calendar_service import create_interview_event
     from services.email_service import send_interview_invitation
     
-    try:
-        event_result = create_interview_event(
-            refresh_token=recruiter_profile.google_refresh_token,
-            candidate_email=candidate_email,
-            recruiter_email=recruiter_email,
-            start_time=interview_data.scheduled_time.isoformat(),
-            duration_minutes=interview_data.duration_minutes,
-            job_title=job_title
-        )
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Google API Error: {str(e)}")
-        
+    # Try Google Calendar if connected, otherwise just save to DB
+    google_event_id = None
+    meet_link = None
+    
+    if recruiter_profile.google_refresh_token:
+        try:
+            from services.google_calendar_service import create_interview_event
+            recruiter_email = recruiter_profile.user.email
+            event_result = create_interview_event(
+                refresh_token=recruiter_profile.google_refresh_token,
+                candidate_email=candidate_email,
+                recruiter_email=recruiter_email,
+                start_time=interview_data.scheduled_time.isoformat(),
+                duration_minutes=interview_data.duration_minutes,
+                job_title=job_title
+            )
+            google_event_id = event_result.get("event_id")
+            meet_link = event_result.get("meet_link")
+        except Exception as e:
+            print(f"Google Calendar event creation failed (continuing without it): {e}")
+    
     new_interview = models.Interview(
         application_id=application.id,
         scheduled_by=recruiter_id,
         scheduled_time=interview_data.scheduled_time,
         duration_minutes=interview_data.duration_minutes,
-        google_event_id=event_result.get("event_id"),
-        meet_link=event_result.get("meet_link"),
+        google_event_id=google_event_id,
+        meet_link=meet_link,
         status=models.InterviewStatusEnum.Scheduled
     )
     db.add(new_interview)
@@ -236,20 +266,23 @@ def schedule_interview(db: Session, app_id: int, company_id: int, recruiter_id: 
         application_id=application.id,
         previous_status=previous_status,
         new_status=models.ApplicationStatusEnum.Interview,
-        comment=f"Interview scheduled.",
+        comment=f"Interview scheduled for {interview_data.scheduled_time.strftime('%Y-%m-%d %H:%M')}.",
         changed_by=recruiter_id
     )
     db.add(history)
     db.commit()
     db.refresh(new_interview)
     
-    if event_result.get("meet_link"):
+    # Send email notification to the candidate
+    try:
         send_interview_invitation(
             to_email=candidate_email,
             company_name=company_name,
             job_title=job_title,
             scheduled_time=interview_data.scheduled_time.strftime("%Y-%m-%d %H:%M:%S"),
-            meet_link=event_result.get("meet_link")
+            meet_link=meet_link or "To be shared later"
         )
+    except Exception as e:
+        print(f"Failed to send interview email (interview still saved): {e}")
         
     return new_interview

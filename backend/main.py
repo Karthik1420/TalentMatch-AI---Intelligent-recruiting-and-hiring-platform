@@ -34,7 +34,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # CORS setup for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Update for production
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://talentmatchai-xi.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

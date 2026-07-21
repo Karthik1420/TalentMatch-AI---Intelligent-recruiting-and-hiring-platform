@@ -276,6 +276,11 @@ class InterviewResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class InterviewDetailResponse(InterviewResponse):
+    candidate_name: str
+    job_title: str
+    candidate_id: int
+
 class JobApplicationResponse(BaseModel):
     id: int
     job_id: int
@@ -482,3 +487,8 @@ class CandidatePortfolioResponse(BaseModel):
     certifications: List[CertificationResponse] = []
     languages: List[CandidateLanguageResponse] = []
     skills: List[CandidateSkillResponse] = []
+
+class ResumeAnalysisResponse(BaseModel):
+    analysis_markdown: str
+    top_candidate_score: Optional[int] = None
+

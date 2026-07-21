@@ -51,7 +51,7 @@ const RecruiterJobs = ({ onViewApplications }) => {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch('https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/jobs', {
+      const res = await fetch((import.meta.env.VITE_API_URL || 'https://talentmatch-ai-intelligent-recruiting.onrender.com') + '/recruiter/jobs', {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       if (res.ok) {
@@ -71,7 +71,7 @@ const RecruiterJobs = ({ onViewApplications }) => {
     fetchJobs();
     const fetchTags = async () => {
       try {
-        const res = await fetch('https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/tags', {
+        const res = await fetch((import.meta.env.VITE_API_URL || 'https://talentmatch-ai-intelligent-recruiting.onrender.com') + '/recruiter/tags', {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         if (res.ok) {
@@ -112,8 +112,8 @@ const RecruiterJobs = ({ onViewApplications }) => {
 
       const isEditing = !!editingJobId;
       const url = isEditing 
-        ? `https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/jobs/${editingJobId}`
-        : 'https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/jobs';
+        ? `${(import.meta.env.VITE_API_URL || 'https://talentmatch-ai-intelligent-recruiting.onrender.com')}/recruiter/jobs/${editingJobId}`
+        : (import.meta.env.VITE_API_URL || 'https://talentmatch-ai-intelligent-recruiting.onrender.com') + '/recruiter/jobs';
         
       const res = await fetch(url, {
         method: isEditing ? 'PUT' : 'POST',
@@ -166,7 +166,7 @@ const RecruiterJobs = ({ onViewApplications }) => {
     if (!window.confirm("Are you sure you want to delete this job posting? This action cannot be undone.")) return;
     
     try {
-      const res = await fetch(`https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/jobs/${jobId}`, {
+      const res = await fetch(`${(import.meta.env.VITE_API_URL || 'https://talentmatch-ai-intelligent-recruiting.onrender.com')}/recruiter/jobs/${jobId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${user.token}` }
       });
@@ -184,7 +184,7 @@ const RecruiterJobs = ({ onViewApplications }) => {
   const handleToggleStatus = async (job) => {
     const newStatus = job.status === 'Open' ? 'Closed' : 'Open';
     try {
-      const res = await fetch(`https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/jobs/${job.id}`, {
+      const res = await fetch(`${(import.meta.env.VITE_API_URL || 'https://talentmatch-ai-intelligent-recruiting.onrender.com')}/recruiter/jobs/${job.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

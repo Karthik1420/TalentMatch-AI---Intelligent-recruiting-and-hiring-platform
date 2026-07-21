@@ -3,13 +3,14 @@ import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LogOut, Moon, Sun, Menu, X, 
-  UserCircle, FileText, Search, Briefcase, Loader2
+  UserCircle, FileText, Search, Briefcase, Loader2, Atom
 } from 'lucide-react';
 import logo from '../assets/logo.png';
 import candidateApi from '../api/candidateApi';
 import CandidateWizard from '../components/candidate/Wizard/CandidateWizard';
 import CandidatePortfolio from '../components/candidate/Portfolio/CandidatePortfolio';
 import JobMatches from '../components/candidate/JobMatches/JobMatches';
+import ResumeAnalyzer from '../components/candidate/ResumeAnalyzer';
 
 const UserDashboard = () => {
   const { logout, user } = useAuth();
@@ -98,6 +99,9 @@ const UserDashboard = () => {
           <button onClick={() => setActiveTab('matches')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeTab === 'matches' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'}`}>
             <Briefcase className="w-4 h-4" /> Job Matches
           </button>
+          <button onClick={() => setActiveTab('analyzer')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeTab === 'analyzer' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'}`}>
+            <Atom className="w-4 h-4" /> Resume Match
+          </button>
         </nav>
         <div className="p-4 border-t border-slate-200 dark:border-slate-800">
           <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-colors">
@@ -119,6 +123,7 @@ const UserDashboard = () => {
               {activeTab === 'profile' && 'Job Seeker Dashboard'}
               {activeTab === 'resume' && 'My Resume'}
               {activeTab === 'matches' && 'Job Matches'}
+              {activeTab === 'analyzer' && 'Resume Analyzer'}
             </h1>
           </div>
           <div className="flex items-center gap-4">
@@ -128,7 +133,11 @@ const UserDashboard = () => {
             <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-slate-700">
               <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-700 dark:text-indigo-300 text-sm font-bold overflow-hidden">
                 {portfolioData?.profile?.profile_photo ? (
-                    <img src={`https://talentmatch-ai-intelligent-recruiting.onrender.com${portfolioData.profile.profile_photo}`} alt="Profile" className="w-full h-full object-cover" />
+                    <img 
+                      src={portfolioData.profile.profile_photo.startsWith('http') ? portfolioData.profile.profile_photo : `${(import.meta.env.VITE_API_URL || 'https://talentmatch-ai-intelligent-recruiting.onrender.com')}${portfolioData.profile.profile_photo}`} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover" 
+                    />
                 ) : (
                     portfolioData?.profile?.first_name?.charAt(0) || 'J'
                 )}
@@ -155,6 +164,7 @@ const UserDashboard = () => {
                   <button onClick={() => { setActiveTab('profile'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium ${activeTab === 'profile' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400'}`}><UserCircle className="w-4 h-4" /> My Profile</button>
                   <button onClick={() => { setActiveTab('resume'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium ${activeTab === 'resume' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400'}`}><FileText className="w-4 h-4" /> Resume Upload</button>
                   <button onClick={() => { setActiveTab('matches'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium ${activeTab === 'matches' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400'}`}><Briefcase className="w-4 h-4" /> Job Matches</button>
+                  <button onClick={() => { setActiveTab('analyzer'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium ${activeTab === 'analyzer' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400'}`}><Atom className="w-4 h-4" /> Resume Match</button>
                 </nav>
                 <div className="p-4 border-t border-slate-200 dark:border-slate-800">
                   <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"><LogOut className="w-4 h-4" /> Logout</button>
@@ -192,6 +202,12 @@ const UserDashboard = () => {
               {activeTab === 'matches' && (
                 <motion.div key="matches" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                   <JobMatches />
+                </motion.div>
+              )}
+
+              {activeTab === 'analyzer' && (
+                <motion.div key="analyzer" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                  <ResumeAnalyzer />
                 </motion.div>
               )}
             </AnimatePresence>

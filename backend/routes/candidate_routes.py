@@ -221,4 +221,8 @@ def apply_for_job(job_id: int, background_tasks: BackgroundTasks, db: Session = 
 
 @router.get("/applications", response_model=List[schemas.JobApplicationResponse])
 def get_my_applications(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_candidate)):
-    return candidate_service.get_my_applications(db=db, user_id=current_user.id)
+    return candidate_service.get_my_applications(db, current_user.id)
+
+@router.get("/jobs/{job_id}/analyze-resume", response_model=schemas.ResumeAnalysisResponse)
+def analyze_resume(job_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_candidate)):
+    return candidate_service.analyze_resume(db, current_user.id, job_id)

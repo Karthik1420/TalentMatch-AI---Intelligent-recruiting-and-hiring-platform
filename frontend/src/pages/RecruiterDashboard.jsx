@@ -3,11 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LogOut, Moon, Sun, Menu, X, 
-  Search, Briefcase, Users
+  Search, Briefcase, Users, Calendar
 } from 'lucide-react';
 import logoFallback from '../assets/logo.png';
 import RecruiterJobs from '../components/recruiter/RecruiterJobs';
 import RecruiterApplications from '../components/recruiter/RecruiterApplications';
+import RecruiterInterviews from '../components/recruiter/RecruiterInterviews';
 
 const RecruiterDashboard = () => {
   const { logout, user } = useAuth();
@@ -32,7 +33,7 @@ const RecruiterDashboard = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch('https://talentmatch-ai-intelligent-recruiting.onrender.com/recruiter/me', {
+        const res = await fetch((import.meta.env.VITE_API_URL || 'https://talentmatch-ai-intelligent-recruiting.onrender.com') + '/recruiter/me', {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         if (res.ok) {
@@ -68,6 +69,9 @@ const RecruiterDashboard = () => {
           </button>
           <button onClick={() => setActiveTab('candidates')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeTab === 'candidates' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'}`}>
             <Users className="w-4 h-4" /> Candidate Search
+          </button>
+          <button onClick={() => setActiveTab('interviews')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeTab === 'interviews' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'}`}>
+            <Calendar className="w-4 h-4" /> Interviews
           </button>
         </nav>
         <div className="p-4 border-t border-slate-200 dark:border-slate-800">
@@ -125,6 +129,7 @@ const RecruiterDashboard = () => {
                 <nav className="flex-1 p-4 space-y-1">
                   <button onClick={() => { setActiveTab('jobs'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium ${['jobs', 'applications'].includes(activeTab) ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400'}`}><Briefcase className="w-4 h-4" /> Job Postings</button>
                   <button onClick={() => { setActiveTab('candidates'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium ${activeTab === 'candidates' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400'}`}><Users className="w-4 h-4" /> Candidate Search</button>
+                  <button onClick={() => { setActiveTab('interviews'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium ${activeTab === 'interviews' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400'}`}><Calendar className="w-4 h-4" /> Interviews</button>
                 </nav>
                 <div className="p-4 border-t border-slate-200 dark:border-slate-800">
                   <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"><LogOut className="w-4 h-4" /> Logout</button>
@@ -171,6 +176,12 @@ const RecruiterDashboard = () => {
                     jobTitle={selectedJob.title} 
                     onBack={() => setActiveTab('jobs')}
                   />
+                </motion.div>
+              )}
+
+              {activeTab === 'interviews' && (
+                <motion.div key="interviews" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                  <RecruiterInterviews />
                 </motion.div>
               )}
             </AnimatePresence>

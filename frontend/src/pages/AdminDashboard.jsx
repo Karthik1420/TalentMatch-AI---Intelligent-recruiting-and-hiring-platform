@@ -60,7 +60,7 @@ const AdminDashboard = () => {
   const [success, setSuccess] = useState('');
 
   const api = axios.create({
-    baseURL: 'https://talentmatch-ai-intelligent-recruiting.onrender.com',
+    baseURL: (import.meta.env.VITE_API_URL || 'https://talentmatch-ai-intelligent-recruiting.onrender.com') + '',
     headers: { Authorization: `Bearer ${user?.token}` }
   });
 

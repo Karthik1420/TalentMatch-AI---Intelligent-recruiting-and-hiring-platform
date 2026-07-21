@@ -377,3 +377,86 @@ def apply_for_job(db: Session, job_id: int, user_id: int, background_tasks: Back
 
 def get_my_applications(db: Session, user_id: int):
     return db.query(models.JobApplication).filter(models.JobApplication.candidate_id == user_id).all()
+
+def analyze_resume(db: Session, user_id: int, job_id: int):
+    # 1. Verify candidate applied for this job
+    app = db.query(models.JobApplication).filter(
+        models.JobApplication.candidate_id == user_id,
+        models.JobApplication.job_id == job_id
+    ).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found for this job.")
+    
+    # 2. Get highest ATS score application for this job
+    top_app = db.query(models.JobApplication).join(models.AIEvaluation, models.JobApplication.id == models.AIEvaluation.application_id)\
+        .filter(models.JobApplication.job_id == job_id)\
+        .order_by(models.AIEvaluation.ats_score.desc()).first()
+        
+    top_candidate_score = None
+    top_portfolio = None
+    if top_app:
+        top_eval = db.query(models.AIEvaluation).filter(models.AIEvaluation.application_id == top_app.id).first()
+        top_candidate_score = top_eval.ats_score if top_eval else None
+        top_portfolio = get_full_portfolio(db, top_app.candidate_id)
+        
+    current_portfolio = get_full_portfolio(db, user_id)
+    job = app.job
+    
+    # 3. Construct Gemini Prompt
+    import config
+    # pyrefly: ignore [missing-import]
+    from google import genai
+    
+    prompt = f"""
+    You are an expert ATS (Applicant Tracking System) Evaluator and Career Coach.
+    A candidate wants to understand how their resume compares against the best candidate (the one with the highest ATS score) for a specific job they applied to.
+    
+    JOB TITLE: {job.title}
+    JOB DESCRIPTION: {job.description}
+    REQUIRED SKILLS: {job.required_skills_text}
+    
+    CURRENT CANDIDATE'S PROFILE:
+    Headline: {current_portfolio.profile.headline if current_portfolio.profile else ''}
+    Summary: {current_portfolio.profile.summary if current_portfolio.profile else ''}
+    Skills: {[skill.skill.name for skill in current_portfolio.skills]}
+    Experience: {[{"role": exp.designation, "desc": exp.description} for exp in current_portfolio.experience]}
+    """
+    
+    if top_portfolio:
+        prompt += f"""
+        TOP CANDIDATE'S PROFILE (For comparison):
+        Headline: {top_portfolio.profile.headline if top_portfolio.profile else ''}
+        Summary: {top_portfolio.profile.summary if top_portfolio.profile else ''}
+        Skills: {[skill.skill.name for skill in top_portfolio.skills]}
+        Experience: {[{"role": exp.designation, "desc": exp.description} for exp in top_portfolio.experience]}
+        
+        Compare the Current Candidate's profile with the Top Candidate's profile.
+        Identify:
+        1. What the Top Candidate did well or possessed that the Current Candidate is lacking (Gaps).
+        2. What the Current Candidate has that is strong and perhaps better than the Top Candidate (Strengths).
+        3. Actionable advice for the Current Candidate to improve their profile for this kind of role.
+        """
+    else:
+        prompt += f"""
+        (No other candidates to compare against yet.)
+        Analyze the Current Candidate's profile against the Job Description.
+        Identify:
+        1. Gaps in the candidate's profile relative to the Job Description.
+        2. Strengths the candidate possesses for this role.
+        3. Actionable advice to improve their profile for this role.
+        """
+        
+    prompt += "\nFormat your response beautifully using standard Markdown. Do not include JSON. Be constructive and encouraging."
+    
+    try:
+        client = genai.Client(api_key=config.RESUME_HELPER_API_KEY or config.GEMINI_API_KEY)
+        response = client.models.generate_content(
+            model='gemini-3.5-flash',
+            contents=prompt,
+        )
+        return {
+            "analysis_markdown": response.text,
+            "top_candidate_score": top_candidate_score
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI Analysis Failed: {str(e)}")

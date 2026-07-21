@@ -149,13 +149,20 @@ def google_auth_callback(code: str, state: str, db: Session = Depends(get_db)):
     return RedirectResponse(url="https://talentmatchai-xi.vercel.app/recruiter/dashboard?google_auth=success")
 
 @router.post("/applications/{app_id}/schedule-interview", response_model=schemas.InterviewResponse)
-def schedule_interview(app_id: int, interview_data: schemas.InterviewCreate, current_user: models.User = Depends(get_current_recruiter), db: Session = Depends(get_db)):
-    """Schedule an interview using Google Calendar."""
+def schedule_interview(
+    app_id: int, 
+    interview_data: schemas.InterviewCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_recruiter)
+):
     profile = get_recruiter_profile(current_user, db)
-    return recruiter_service.schedule_interview(
-        db=db,
-        app_id=app_id,
-        company_id=profile.company_id,
-        recruiter_id=current_user.id,
-        interview_data=interview_data
-    )
+    if not profile:
+        raise HTTPException(status_code=404, detail="Recruiter profile not found")
+        
+    return recruiter_service.schedule_interview(db, app_id, profile.company_id, current_user.id, interview_data)
+@router.get("/interviews", response_model=List[schemas.InterviewDetailResponse])
+def get_interviews(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_recruiter)
+):
+    return recruiter_service.get_interviews(db, current_user.id)

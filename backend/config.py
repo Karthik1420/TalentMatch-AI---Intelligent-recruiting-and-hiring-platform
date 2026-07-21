@@ -29,6 +29,7 @@ GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "https://talentmatch-ai-i
 
 # Gemini Settings
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+RESUME_HELPER_API_KEY = os.getenv("RESUME_HELPER_API_KEY")
 
 # Resend Settings
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")

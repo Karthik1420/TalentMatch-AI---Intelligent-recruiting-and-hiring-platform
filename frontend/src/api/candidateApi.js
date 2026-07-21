@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://talentmatch-ai-intelligent-recruiting.onrender.com';
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://talentmatch-ai-intelligent-recruiting.onrender.com') + '';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
